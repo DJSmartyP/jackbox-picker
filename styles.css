@@ -934,3 +934,119 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   }
   .wheel-page .wheel-layout{height:100% !important}
 }
+
+/* --- Compact, standard game-card content grid: 2 title lines + 2 tag rows --- */
+.compact-games-grid{align-items:stretch}
+.compact-games-grid .game-card{height:100%}
+.compact-games-grid .game-body{
+  display:flex !important;
+  flex-direction:column;
+  padding:9px 11px 10px !important;
+  gap:6px !important;
+  min-height:0 !important;
+}
+.compact-games-grid .game-meta{gap:7px;align-items:flex-start}
+.compact-games-grid .game-title-wrap{
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  overflow:hidden;
+  flex:1 1 auto;
+}
+.compact-games-grid .game-card h3{
+  font-size:18px !important;
+  line-height:1.04 !important;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.compact-games-grid .mini-row{
+  height:52px !important;
+  min-height:52px !important;
+  max-height:52px !important;
+  overflow:hidden;
+  margin:0 !important;
+  gap:5px !important;
+  align-content:flex-start !important;
+}
+.compact-games-grid .mini-tag{
+  font-size:11px !important;
+  line-height:1 !important;
+  padding:6px 8px !important;
+}
+.compact-games-grid .card-actions{
+  margin-top:0 !important;
+  gap:7px !important;
+}
+.compact-games-grid .card-actions button{
+  min-height:38px !important;
+  padding:8px 10px !important;
+  font-size:14px !important;
+}
+
+/* --- Current approved full-body wheel character test --- */
+.wheel-wrap{overflow:visible!important}
+.wheel-character{
+  width:auto!important;
+  object-fit:contain!important;
+  object-position:bottom center!important;
+  transform:none!important;
+  max-width:none!important;
+  z-index:5!important;
+}
+.wheel-character-1{
+  height:51%!important;
+  max-height:360px!important;
+  left:-18%!important;
+  right:auto!important;
+  bottom:-4%!important;
+}
+.wheel-character-2{
+  height:44%!important;
+  max-height:310px!important;
+  right:-14%!important;
+  left:auto!important;
+  bottom:-2%!important;
+  z-index:5!important;
+}
+@media(max-width:1450px){
+  .wheel-character-1{height:46%!important;left:-13%!important}
+  .wheel-character-2{height:39%!important;right:-9%!important}
+}
+@media(max-width:1180px){
+  .wheel-character-1{height:42%!important;left:-8%!important}
+  .wheel-character-2{display:none!important}
+}
+@media(max-width:900px){.wheel-character{display:none!important}}
+
+/* --- Exact compact card allowance: two title lines + two tag rows + actions --- */
+.compact-games-grid{align-items:stretch!important}
+.compact-games-grid .game-card{height:100%!important}
+.compact-games-grid .game-body{
+  min-height:0!important;
+  padding:9px 11px 10px!important;
+  gap:6px!important;
+}
+.compact-games-grid .game-title-wrap{
+  height:38px!important;
+  min-height:38px!important;
+  max-height:38px!important;
+}
+.compact-games-grid .game-card h3{
+  line-height:1.04!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+}
+.compact-games-grid .mini-row{
+  height:52px!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  overflow:hidden!important;
+  margin:0!important;
+  gap:5px!important;
+  align-content:flex-start!important;
+}
+.compact-games-grid .card-actions{margin-top:0!important}

@@ -30,26 +30,37 @@ function artStyle(id){return `style="background-image:linear-gradient(180deg,rgb
 function gameArtStyle(g){return `style="background-image:linear-gradient(180deg,rgba(6,10,20,.12),rgba(6,10,20,.78)),url('${gameArtUrl(g)}')"`}
 function gameArtOnlyStyle(g){return `style="background-image:url('${gameArtUrl(g)}')"`}
 const wheelOverlayFamilies={
-  female:['assets/wheel-overlays/female-1.png','assets/wheel-overlays/female-2.png','assets/wheel-overlays/female-3.png'],
-  male:['assets/wheel-overlays/male-1.png','assets/wheel-overlays/male-2.png','assets/wheel-overlays/male-3.png'],
-  smarty:['assets/wheel-overlays/smarty-1.png','assets/wheel-overlays/smarty-2.png'],
-  robot:['assets/wheel-overlays/robot-1.png','assets/wheel-overlays/robot-2.png','assets/wheel-overlays/robot-3.png'],
-  cat:['assets/wheel-overlays/cat-1.png','assets/wheel-overlays/cat-2.png'],
-  pizza:['assets/wheel-overlays/pizza-1.png','assets/wheel-overlays/pizza-2.png'],
-  disco:['assets/wheel-overlays/disco-1.png','assets/wheel-overlays/disco-2.png'],
-  penguin:['assets/wheel-overlays/penguin-1.png','assets/wheel-overlays/penguin-2.png'],
-  dog:['assets/wheel-overlays/dog-1.png'],
-  lava:['assets/wheel-overlays/lava-1.png'],
-  bee:['assets/wheel-overlays/bee-1.png'],
-  alien:['assets/wheel-overlays/alien-1.png','assets/wheel-overlays/alien-2.png'],
-  platypus:['assets/wheel-overlays/platypus-1.png'],
-  unicorn:['assets/wheel-overlays/unicorn-1.png']
+  female:[
+    'assets/wheel-overlays/female-1.png',
+    'assets/wheel-overlays/female-2.png',
+    'assets/wheel-overlays/female-3.png',
+    'assets/wheel-overlays/female-4.png'
+  ],
+  male:[
+    'assets/wheel-overlays/male-1.png',
+    'assets/wheel-overlays/male-2.png',
+    'assets/wheel-overlays/male-3.png',
+    'assets/wheel-overlays/male-4.png'
+  ],
+  monkey:[
+    'assets/wheel-overlays/monkey-1.png',
+    'assets/wheel-overlays/monkey-2.png'
+  ],
+  smarty:[
+    'assets/wheel-overlays/smarty-1.png',
+    'assets/wheel-overlays/smarty-2.png',
+    'assets/wheel-overlays/smarty-3.png',
+    'assets/wheel-overlays/smarty-4.png'
+  ]
 };
 function randomFrom(list){return list[Math.floor(Math.random()*list.length)]}
 function chooseWheelOverlaySet(){
-  const families=Object.keys(wheelOverlayFamilies).sort(()=>Math.random()-.5);
-  const selected=families.slice(0,2);
-  return selected.map(family=>({family,src:randomFrom(wheelOverlayFamilies[family])}));
+  const otherFamilies=Object.keys(wheelOverlayFamilies).filter(family=>family!=='smarty');
+  const secondFamily=randomFrom(otherFamilies);
+  return [
+    {family:'smarty',src:randomFrom(wheelOverlayFamilies.smarty),side:'left'},
+    {family:secondFamily,src:randomFrom(wheelOverlayFamilies[secondFamily]),side:'right'}
+  ];
 }
 const sessionWheelOverlays=chooseWheelOverlaySet();
 function wheelOverlayMarkup(){return sessionWheelOverlays.map((item,i)=>`<img class="wheel-character wheel-character-${i+1}" src="${item.src}" alt="" aria-hidden="true">`).join('')}
