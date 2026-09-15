@@ -909,34 +909,35 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .brand-product-name{display:none}
 }
 
-/* --- Slimmer 5-up game tiles: preserve 16:9 art, tighten the body --- */
-.compact-games-grid .game-body{
-  padding:10px 11px 11px !important;
-  gap:8px !important;
+/* --- Natural-height game cards: remove the artificial empty middle --- */
+.compact-games-grid{
+  align-items:start !important;
 }
-.compact-games-grid .game-meta{
-  gap:6px;
+.compact-games-grid .game-card{
+  height:auto !important;
+  min-height:0 !important;
+  align-self:start !important;
+}
+.compact-games-grid .game-body{
+  flex:0 0 auto !important;
+  min-height:0 !important;
+  height:auto !important;
+  padding:9px 11px 10px !important;
+  gap:7px !important;
 }
 .compact-games-grid .game-title-wrap{
-  min-height:36px !important;
-}
-.compact-games-grid .game-card h3{
-  font-size:18px !important;
-  line-height:1.03 !important;
+  min-height:0 !important;
 }
 .compact-games-grid .mini-row{
-  gap:5px !important;
   margin-top:0 !important;
-}
-.compact-games-grid .mini-tag{
-  font-size:11px !important;
-  padding:5px 8px !important;
+  margin-bottom:1px !important;
+  gap:5px !important;
 }
 .compact-games-grid .card-actions{
+  margin-top:3px !important;
   gap:7px !important;
 }
 .compact-games-grid .card-actions button{
-  min-height:38px !important;
-  padding:8px 10px !important;
-  font-size:14px !important;
+  min-height:36px !important;
+  padding:7px 9px !important;
 }
