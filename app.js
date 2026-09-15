@@ -140,24 +140,10 @@ function categoryCopy(k){return {drawing:'Doodles, visual creation and art-based
 
 function renderGames(){
   const list=filteredGames();
-  app.innerHTML=`<section><div class="section-head"><div><h2>All games</h2><p>Browse by pack, then narrow by game, player count or interaction.</p></div></div>
+  app.innerHTML=`<section><div class="section-head"><div><h2>All games</h2><p>Search by game, pack, play style or exact group size.</p></div></div>
     ${filtersHTML()}
-    ${list.length?groupedGameSections(list):`<div class="empty">No games match those filters.</div>`}
+    <div class="games-grid">${list.length?list.map(gameCard).join(''):`<div class="empty" style="grid-column:1/-1">No games match those filters.</div>`}</div>
   </section>`;
-}
-function groupedGameSections(list){
-  return packs.map(p=>{
-    const items=list.filter(g=>String(g.pack)===String(p.id));
-    if(!items.length) return '';
-    const unit=p.kind==='standalone'?'modes':'games';
-    return `<section class="game-pack-group">
-      <div class="game-pack-heading">
-        <div><span class="game-pack-kicker">${packBadge(p)}</span><h3>${esc(p.name)}</h3></div>
-        <span class="game-pack-count">${items.length} ${unit}${p.status==='upcoming'?' · Upcoming':''}</span>
-      </div>
-      <div class="games-grid compact-games-grid">${items.map(gameCard).join('')}</div>
-    </section>`;
-  }).join('');
 }
 function filtersHTML(){return `
   <div class="toolbar"><div class="searchbox"><input id="searchInput" value="${esc(state.search)}" placeholder="Search games, packs or styles…"></div>
@@ -181,7 +167,7 @@ function gameCard(g){
 function renderPacks(){
   app.innerHTML=`<section><div class="section-head"><div><h2>Packs & standalone titles</h2><p>Official pack artwork with an original big-screen companion UI.</p></div></div><div class="packs-grid">${packs.map(packCard).join('')}</div></section>`;
 }
-function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><h3>${p.name}</h3><p>${p.year} · ${count} ${unit} ${p.status==='upcoming'?'· Upcoming':''}</p><div class="pack-controls"><span>${items.map(g=>`${g.min}–${g.max}`).slice(0,2).join(' · ')}${count>2?' …':''}</span><button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
+function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><h3>${p.name}</h3><p>${p.year} · ${count} ${unit} ${p.status==='upcoming'?'· Upcoming':''}</p><div class="pack-controls"><button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
 
 function renderFinder(){
   const list=filteredGames();
@@ -194,7 +180,7 @@ function renderFinder(){
     <div class="toggle-row"><div><b>Only packs I own</b><div class="wheel-small">Stored on this device</div></div><button class="toggle ${state.ownedOnly?'active':''}" data-toggle-owned></button></div>
     <div class="toggle-row"><div><b>Only favourites</b><div class="wheel-small">Your saved game shortlist</div></div><button class="toggle ${state.favOnly?'active':''}" data-toggle-fav></button></div>
     <button class="ghost" style="width:100%;margin-top:14px" data-clear-filters>Clear filters</button>
-  </aside><div><div class="section-head"><div><h2 style="font-size:32px">${list.length} matches</h2><p>${finderSummary()}</p></div>${list.length?'<button class="primary" data-send-wheel>Send matches to wheel</button>':''}</div>${list.length?groupedGameSections(list):'<div class="empty">Try widening the player count or interaction filters.</div>'}</div></div></section>`;
+  </aside><div><div class="section-head"><div><h2 style="font-size:26px">${list.length} matches</h2><p>${finderSummary()}</p></div>${list.length?'<button class="primary" data-send-wheel>Send matches to wheel</button>':''}</div><div class="games-grid">${list.length?list.map(gameCard).join(''):'<div class="empty" style="grid-column:1/-1">Try widening the player count or interaction filters.</div>'}</div></div></div></section>`;
 }
 function finderSummary(){let bits=[];if(state.players)bits.push(`${state.players} players`);if(state.tags.size)bits.push([...state.tags].map(t=>tagMeta[t].label).join(state.match==='all'?' + ':' or '));if(state.ownedOnly)bits.push('owned packs');if(state.favOnly)bits.push('favourites');return bits.length?`Matching ${bits.join(' · ')}`:'No filters applied yet.'}
 

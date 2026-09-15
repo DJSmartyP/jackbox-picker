@@ -1,14 +1,12 @@
-STREAM POLISH DELTA
+Delta update: 5 games / 3 packs stream layout
 
-Replace index.html and add stream-polish.css at the repository root.
-No other files are changed.
+Replace:
+- app.js
+- stream-polish.css
 
-Designed around a 1920x1080 streamed window:
-- larger navigation and controls
-- stronger 1080p typography hierarchy
-- compact grouped games remain readable at distance
-- 4-column compact game grid at wide 1080p widths
-- larger finder controls
-- larger wheel and result reveal
-- bigger stream-visible toast confirmations
-- larger game detail modal
+Changes:
+- 5 compact game tiles per row on 1400px+ streamed windows
+- 3 pack tiles per row on 1400px+ streamed windows
+- removed the player-count text from the bottom of pack tiles
+- retained the Owned control
+- slightly tightened compact game artwork/type to fit five across without tiny UI text

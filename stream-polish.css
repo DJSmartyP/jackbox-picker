@@ -95,17 +95,17 @@ button:active:not(:disabled){transform:translateY(0) scale(.985)}
   .game-pack-kicker{font-size:16px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
   .game-pack-heading h3{font-size:34px;line-height:1;margin:4px 0 0;letter-spacing:-.035em}
   .game-pack-count{font-size:17px;font-weight:850;color:var(--muted)}
-  .compact-games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+  .compact-games-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:13px}
   .compact-games-grid .game-card{border-radius:20px;min-width:0}
-  .compact-games-grid .game-art{height:132px}
+  .compact-games-grid .game-art{height:116px}
   .compact-games-grid .game-art-overlay{padding:11px}
   .compact-games-grid .game-body{padding:14px;gap:10px}
-  .compact-games-grid .game-card h3{font-size:24px;line-height:1.02;letter-spacing:-.03em}
+  .compact-games-grid .game-card h3{font-size:21px;line-height:1.02;letter-spacing:-.03em}
   .compact-games-grid .game-card p{display:none}
-  .compact-games-grid .pack-badge,.compact-games-grid .status-badge,.compact-games-grid .mini-tag{font-size:15px;padding:7px 9px}
+  .compact-games-grid .pack-badge,.compact-games-grid .status-badge,.compact-games-grid .mini-tag{font-size:13px;padding:6px 7px}
   .compact-games-grid .mini-row{gap:6px}
   .compact-games-grid .card-actions{gap:8px}
-  .compact-games-grid .card-actions button{min-height:44px;padding:9px 10px;font-size:16px}
+  .compact-games-grid .card-actions button{min-height:42px;padding:8px 9px;font-size:15px}
   .compact-games-grid .fav-btn{font-size:22px}
 
   /* Non-grouped cards still need to read well */
@@ -118,7 +118,7 @@ button:active:not(:disabled){transform:translateY(0) scale(.985)}
   .packs-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
   .pack-art{height:218px}
   .pack-card h3{font-size:29px}
-  .pack-card p,.pack-controls span{font-size:17px}
+  .pack-card p{font-size:17px}
   .owned-toggle{font-size:17px;min-height:46px}
 
   /* Finder */
@@ -178,3 +178,10 @@ button:active:not(:disabled){transform:translateY(0) scale(.985)}
   .packs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .wheel-layout{grid-template-columns:minmax(0,1fr) 390px}
 }
+
+/* 1080p density refinement */
+@media (min-width:1400px){
+  .compact-games-grid{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .packs-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+.pack-controls{justify-content:flex-end}
