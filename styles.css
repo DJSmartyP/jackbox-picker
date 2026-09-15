@@ -496,3 +496,37 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .topbar .brand img{max-height:46px;width:auto;max-width:230px;object-fit:contain}
   .app-shell{padding-top:22px}
 }
+
+
+/* --- Player selector simplification + detail category artwork --- */
+.detail-category-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:8px;
+}
+.detail-category{
+  min-width:150px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px 10px 10px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.035));
+  font-size:16px;
+  font-weight:950;
+  color:#fff;
+}
+.detail-category img{
+  width:46px;
+  height:46px;
+  object-fit:contain;
+  flex:0 0 46px;
+  filter:drop-shadow(0 7px 14px rgba(0,0,0,.30));
+}
+.detail-category-other{padding-left:14px}
+@media(max-width:700px){
+  .detail-category{min-width:calc(50% - 6px);flex:1}
+  .detail-category img{width:40px;height:40px;flex-basis:40px}
+}
