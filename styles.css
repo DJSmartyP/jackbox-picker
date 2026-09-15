@@ -327,3 +327,76 @@ footer{color:var(--muted)}
   .wheel-config{max-height:calc(100vh - 136px);padding:18px}
   .wheel-list{max-height:140px}
 }
+
+
+/* --- Pack header + game art fit refinement --- */
+.game-pack-heading{
+  grid-template-columns:minmax(0,1fr) auto;
+  display:grid;
+  align-items:center;
+  gap:14px 18px;
+  padding:16px 18px;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--pc1) 28%, #121a2b), color-mix(in srgb, var(--pc2) 22%, #0f1727));
+}
+.game-pack-heading::before{
+  background:linear-gradient(135deg, color-mix(in srgb, var(--pc1) 34%, transparent), color-mix(in srgb, var(--pc2) 26%, transparent));
+  opacity:1;
+}
+.game-pack-heading::after{
+  background:linear-gradient(135deg, rgba(8,12,22,.18), rgba(8,12,22,.38));
+  opacity:1;
+}
+.game-pack-heading__backplate{
+  opacity:.38;
+  mix-blend-mode:screen;
+}
+.game-pack-heading__copy{
+  min-width:0;
+  gap:4px;
+}
+.game-pack-heading h3{
+  font-size:28px;
+  line-height:1.02;
+  letter-spacing:-.03em;
+  max-width:none;
+  overflow-wrap:anywhere;
+}
+.game-pack-kicker{font-size:12px}
+.game-pack-count{
+  align-self:start;
+  justify-self:end;
+  font-size:16px;
+  padding:9px 12px;
+  white-space:nowrap;
+}
+
+.compact-games-grid .game-art{
+  height:132px;
+  background-size:contain !important;
+  background-repeat:no-repeat !important;
+  background-position:center center !important;
+  background-color:rgba(8,12,22,.92);
+}
+.compact-games-grid .game-art::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at center, rgba(255,255,255,.04), transparent 62%);
+  pointer-events:none;
+}
+.compact-games-grid .game-body{
+  min-height:118px;
+  padding:11px;
+}
+.compact-games-grid .game-title-wrap{min-height:44px}
+.compact-games-grid .game-card h3{font-size:18px}
+.compact-games-grid .mini-tag{font-size:11px}
+.compact-games-grid .card-actions button{min-height:40px;font-size:14px}
+
+@media(max-width:1300px){
+  .game-pack-heading h3{font-size:24px}
+}
+@media(max-width:900px){
+  .game-pack-heading{display:flex;flex-direction:column;align-items:flex-start}
+  .game-pack-count{align-self:flex-start;justify-self:auto}
+}
