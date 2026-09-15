@@ -842,3 +842,69 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .winner-art-frame{min-height:220px}
   .winner-art-rotated-img{width:min(168%,500px)}
 }
+
+
+/* --- top-bar product label + 16:9 game art shelves --- */
+.brand-product-name{
+  display:inline-flex;
+  align-items:center;
+  margin-left:10px;
+  padding-left:18px;
+  border-left:1px solid rgba(255,255,255,.18);
+  font-size:16px;
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:.08em;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.game-pack-heading{margin-bottom:16px}
+
+.compact-games-grid .game-card{display:flex;flex-direction:column;overflow:hidden}
+.compact-games-grid .game-art{
+  position:relative;
+  width:100%;
+  height:auto !important;
+  aspect-ratio:16 / 9;
+  overflow:hidden;
+  background:#080c16 !important;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.compact-games-grid .game-art-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+.compact-games-grid .game-art::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:linear-gradient(180deg,rgba(4,7,14,.02),rgba(4,7,14,.10));
+  pointer-events:none;
+}
+.compact-games-grid .game-art-overlay{position:absolute;inset:0;z-index:2}
+.compact-games-grid .game-body{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  padding:11px;
+}
+.compact-games-grid .card-actions{margin-top:auto}
+
+/* cancel the earlier sideways-card treatment if an old browser cache sees those classes */
+.compact-games-grid .game-art-sideways-img{display:none!important}
+.compact-games-grid .game-art-sideways{grid-column:auto!important;height:auto!important;min-height:0!important;border-right:0!important}
+
+@media(max-width:1250px){
+  .brand-product-name{font-size:14px;margin-left:6px;padding-left:12px;letter-spacing:.06em}
+}
+@media(max-width:980px){
+  .brand-product-name{display:none}
+}

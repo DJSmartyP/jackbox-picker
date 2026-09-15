@@ -201,7 +201,6 @@ function renderHome(){
   app.innerHTML=`
     <section class="hero">
       <div class="hero-card"><div class="hero-copy">
-        <div class="eyebrow">JACKBOX GAMES PICKER · MADE BY PARTYCIPATE</div>
         <h1>Stop scrolling.<br><span>Start playing.</span></h1>
         <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
@@ -256,7 +255,7 @@ function filtersHTML(){return `
 function gameCard(g){
   const p=packInfo(g.pack), c=colourForPack(g.pack);
   return `<article class="game-card" style="--pack-color:linear-gradient(90deg,${c[0]},${c[1]})">
-    <div class="game-art" ${gameArtStyle(g)}><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
+    <div class="game-art"><img class="game-art-img" src="${esc(gameArtUrl(g))}" alt="" loading="lazy"><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
     <div class="game-body">
       <div class="game-meta"><div class="game-title-wrap"><h3>${esc(g.title)}</h3></div><button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div>
       <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag" data-tag="${t}">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
