@@ -185,3 +185,12 @@ button:active:not(:disabled){transform:translateY(0) scale(.985)}
   .packs-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
 .pack-controls{justify-content:flex-end}
+
+/* Fix: game browser is grouped by collection and uses five compact tiles per row. */
+@media (min-width:1400px){
+  .game-pack-group .compact-games-grid{grid-template-columns:repeat(5,minmax(0,1fr)) !important;gap:13px}
+  .packs-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+}
+.game-pack-group .compact-games-grid .game-card p{display:none !important}
+.game-pack-group .compact-games-grid .game-art{height:116px}
+.game-pack-group .compact-games-grid .game-card h3{font-size:21px;line-height:1.02}

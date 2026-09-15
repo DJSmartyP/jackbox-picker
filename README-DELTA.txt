@@ -1,12 +1,13 @@
-Delta update: 5 games / 3 packs stream layout
+PARTY PICKER DELTA — PACK-GROUPED 5-UP GAME GRID
 
-Replace:
+Replace these files in the repo root:
 - app.js
 - stream-polish.css
 
 Changes:
-- 5 compact game tiles per row on 1400px+ streamed windows
-- 3 pack tiles per row on 1400px+ streamed windows
-- removed the player-count text from the bottom of pack tiles
-- retained the Owned control
-- slightly tightened compact game artwork/type to fit five across without tiny UI text
+- Games are grouped under their Party Pack / collection heading.
+- Each normal Party Pack displays its five games on one row at 1400px+ widths.
+- Survey Scramble naturally wraps because it has six modes.
+- Find a Game results use the same pack grouping.
+- Pack browser remains three tiles per row.
+- Compact grouped game cards hide the description so five cards remain readable on a 1080p stream.
