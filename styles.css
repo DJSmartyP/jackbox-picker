@@ -400,3 +400,269 @@ footer{color:var(--muted)}
   .game-pack-heading{display:flex;flex-direction:column;align-items:flex-start}
   .game-pack-count{align-self:flex-start;justify-self:auto}
 }
+
+
+/* =========================================================
+   PARTYCIPATE brand pass
+   Derived from supplied PARTYCIPATE logo/reference artwork.
+   ========================================================= */
+:root{
+  --bg:#05050b;
+  --panel:#0d1120;
+  --panel2:#12172a;
+  --text:#ffffff;
+  --muted:#b7b9ca;
+  --line:rgba(255,255,255,.13);
+  --pink:#ff2aa9;
+  --cyan:#47c8ff;
+  --yellow:#ffd21c;
+  --lime:#9ee226;
+  --violet:#a846d4;
+  --danger:#ff5e77;
+}
+
+body{
+  background:
+    radial-gradient(circle at 8% 16%,rgba(71,200,255,.15),transparent 28%),
+    radial-gradient(circle at 92% 14%,rgba(255,42,169,.16),transparent 28%),
+    radial-gradient(circle at 70% 90%,rgba(168,70,212,.12),transparent 26%),
+    #05050b;
+}
+body,.select,input,button{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+h1,h2,h3,.detail-title,.winner,.pack-num,.desktop-nav button{
+  font-family:Bahnschrift,"Arial Narrow",Inter,ui-sans-serif,sans-serif;
+}
+.bg-orb{opacity:.16;filter:blur(82px)}
+.orb-a{background:var(--cyan)}
+.orb-b{background:var(--pink)}
+.orb-c{background:var(--violet)}
+
+.topbar{
+  background:rgba(4,4,10,.93);
+  border-bottom:1px solid rgba(255,255,255,.11);
+  box-shadow:0 14px 34px rgba(0,0,0,.24);
+}
+.brand{display:flex;align-items:center}
+.brand img{
+  width:250px;
+  max-height:58px;
+  object-fit:contain;
+  object-position:left center;
+}
+.desktop-nav button{
+  letter-spacing:.01em;
+}
+.desktop-nav button:hover,.desktop-nav button.active{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.16);
+}
+.desktop-nav .wheel-nav{
+  background:linear-gradient(135deg,#a846d4 0%,#ff2aa9 46%,#47c8ff 100%);
+  box-shadow:0 10px 30px rgba(255,42,169,.20);
+}
+.wheel-badge-icon{
+  width:24px;
+  height:24px;
+  object-fit:contain;
+  filter:drop-shadow(0 0 8px rgba(71,200,255,.35));
+}
+
+.hero-card,.panel{
+  background:linear-gradient(180deg,rgba(16,19,35,.96),rgba(8,10,20,.96));
+  border-color:rgba(255,255,255,.13);
+}
+.hero-card::after{
+  background:
+    linear-gradient(90deg,rgba(5,5,11,.98) 0%,rgba(5,5,11,.93) 36%,rgba(5,5,11,.58) 60%,rgba(5,5,11,.10) 88%),
+    url('assets/partycipate/partycipate-hero.jpg') center/cover no-repeat;
+  opacity:1;
+}
+.eyebrow{
+  color:var(--cyan);
+  font-size:13px;
+  letter-spacing:.15em;
+}
+.hero h1{
+  text-transform:none;
+  text-shadow:0 10px 34px rgba(0,0,0,.45);
+}
+.hero h1 span{
+  background:linear-gradient(90deg,var(--yellow) 0%,var(--lime) 31%,var(--cyan) 61%,var(--pink) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.primary{
+  background:linear-gradient(135deg,var(--pink),var(--violet));
+  box-shadow:0 12px 28px rgba(255,42,169,.18);
+}
+.secondary{
+  background:linear-gradient(135deg,var(--yellow),var(--lime));
+  color:#08090e;
+}
+.ghost{
+  background:rgba(255,255,255,.06);
+}
+.primary:hover,.card-primary:hover{
+  filter:brightness(1.08);
+}
+
+.category-grid{gap:16px}
+.category-card{
+  min-height:138px;
+  background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));
+  border-color:rgba(255,255,255,.12);
+  position:relative;
+  overflow:hidden;
+}
+.category-card::before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:6px;
+  background:var(--pink);
+}
+.category-card:nth-child(2)::before{background:var(--yellow)}
+.category-card:nth-child(3)::before{background:var(--cyan)}
+.category-card:nth-child(4)::before{background:var(--lime)}
+.category-card img{display:none}
+.category-card strong{
+  font-size:25px;
+  margin:0;
+}
+.category-card small{
+  display:block;
+  margin-top:8px;
+  font-size:15px;
+  line-height:1.35;
+}
+
+.filters-shell{
+  background:rgba(6,8,17,.48);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:14px 16px 8px;
+}
+.searchbox input,.select,.stream-select{
+  background:#0b1020;
+  border-color:rgba(255,255,255,.14);
+}
+.searchbox input:focus,.select:focus,.stream-select:focus{
+  outline:2px solid rgba(71,200,255,.42);
+  outline-offset:1px;
+}
+.tag-chip.active,.player-chip.active,.pack-chip.active{
+  box-shadow:0 0 0 1px rgba(255,255,255,.05),0 0 22px rgba(71,200,255,.09);
+}
+.tag-chip[data-tag="drawing"].active{background:rgba(255,42,169,.17);border-color:rgba(255,42,169,.55)}
+.tag-chip[data-tag="quiz"].active{background:rgba(255,210,28,.15);border-color:rgba(255,210,28,.55)}
+.tag-chip[data-tag="speaking"].active{background:rgba(71,200,255,.16);border-color:rgba(71,200,255,.55)}
+.tag-chip[data-tag="typing"].active{background:rgba(158,226,38,.14);border-color:rgba(158,226,38,.48)}
+
+.game-pack-heading{
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb,var(--pc1) 38%,#0a0b12),
+      color-mix(in srgb,var(--pc2) 28%,#090a11)
+    );
+  border-color:rgba(255,255,255,.15);
+}
+.game-pack-heading::before{
+  background:
+    radial-gradient(circle at 12% 20%,rgba(255,255,255,.12),transparent 24%),
+    linear-gradient(90deg,rgba(255,255,255,.035),transparent 42%);
+}
+.game-pack-heading::after{display:none}
+.game-pack-heading__backplate{display:none}
+.game-pack-heading h3{
+  text-shadow:0 4px 18px rgba(0,0,0,.32);
+}
+.game-pack-kicker{color:#fff;opacity:.88}
+.game-pack-count{
+  background:rgba(4,5,10,.34);
+  border-color:rgba(255,255,255,.18);
+}
+
+.compact-games-grid .game-card{
+  background:linear-gradient(180deg,rgba(15,18,34,.98),rgba(9,11,22,.98));
+}
+.compact-games-grid .game-art{
+  background-color:#05070d;
+}
+.card-primary{
+  background:linear-gradient(135deg,var(--pink),var(--violet));
+}
+.card-primary.added{
+  background:linear-gradient(135deg,var(--lime),var(--cyan));
+  color:#061016;
+}
+.mini-tag.player{
+  color:var(--cyan);
+  border-color:rgba(71,200,255,.22);
+}
+
+.pack-card{
+  background:linear-gradient(180deg,rgba(15,18,34,.98),rgba(8,10,19,.98));
+  border-color:rgba(255,255,255,.12);
+}
+.pack-card-topline{color:var(--cyan)}
+.owned-toggle.active{
+  background:rgba(158,226,38,.13);
+  border-color:rgba(158,226,38,.42);
+  color:#d9ff98;
+}
+
+.wheel-stage,.wheel-config{
+  background:linear-gradient(180deg,rgba(13,17,32,.97),rgba(6,8,17,.97));
+}
+.wheel-wrap::after{
+  border-top-color:var(--yellow);
+  filter:drop-shadow(0 0 12px rgba(255,210,28,.36));
+}
+.spin-btn{
+  background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan));
+  box-shadow:0 14px 34px rgba(168,70,212,.24);
+}
+.winner-art{
+  border-color:rgba(255,255,255,.16);
+  box-shadow:0 22px 48px rgba(0,0,0,.38),0 0 36px rgba(255,42,169,.08);
+}
+.winner-art::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(71,200,255,.18),transparent 31%),
+    radial-gradient(circle at 12% 86%,rgba(255,42,169,.16),transparent 34%);
+  pointer-events:none;
+  z-index:0;
+}
+.winner-burst{display:none}
+.winner-copy{z-index:2}
+
+.dialog{
+  background:#090d19;
+  border-color:rgba(255,255,255,.15);
+}
+.detail-art{
+  border:1px solid rgba(255,255,255,.13);
+}
+.launch-btn{
+  background:linear-gradient(135deg,var(--yellow),var(--lime));
+  color:#08100a;
+  border-color:transparent;
+}
+.launcher-status.online{color:#cfff8f}
+
+.toast{
+  background:#090c17;
+  border-color:rgba(71,200,255,.30);
+  box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 24px rgba(71,200,255,.10);
+}
+
+@media(max-width:900px){
+  .brand img{width:205px;max-height:50px}
+}
