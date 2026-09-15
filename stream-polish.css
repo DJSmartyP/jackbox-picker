@@ -1,0 +1,180 @@
+/* Party Picker — 1080p stream presentation layer
+   Loaded after styles.css so this can be applied as a small delta. */
+
+/* Baseline readability */
+body{font-size:18px}
+button,select,input{font-size:18px}
+button{transition:transform .14s ease,background .14s ease,border-color .14s ease,box-shadow .14s ease}
+button:hover:not(:disabled){transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(0) scale(.985)}
+
+/* 1080p / desktop-stream canvas */
+@media (min-width:1200px) and (min-height:700px){
+  .topbar{
+    height:92px;
+    padding:0 48px;
+    gap:34px;
+    background:rgba(7,11,23,.9);
+  }
+  .brand img{width:224px}
+  .desktop-nav{gap:10px}
+  .desktop-nav button{
+    min-height:54px;
+    padding:13px 20px;
+    border-radius:16px;
+    font-size:19px;
+    font-weight:950;
+  }
+  .icon-btn{width:54px;height:54px;padding:0;font-size:23px}
+
+  .app-shell{
+    width:min(1640px,calc(100% - 80px));
+    padding:34px 0 72px;
+  }
+
+  /* Home = large game-night menu rather than web dashboard */
+  .hero{grid-template-columns:minmax(0,1.45fr) minmax(420px,.55fr);gap:24px}
+  .hero-card{padding:50px 56px;min-height:440px}
+  .hero-side{padding:30px;min-height:440px}
+  .eyebrow{font-size:16px;margin-bottom:18px}
+  .hero h1{font-size:clamp(76px,5.2vw,102px);line-height:.91;margin-bottom:22px}
+  .hero p{font-size:22px;line-height:1.45;max-width:760px}
+  .hero-actions{gap:14px;margin-top:30px}
+  .primary,.secondary,.ghost,.danger{
+    min-height:56px;
+    padding:15px 22px;
+    border-radius:16px;
+    font-size:19px;
+  }
+  .hero-actions .primary,.hero-actions .ghost{min-width:190px;font-size:20px}
+  .hero-side h2{font-size:29px}
+  .stream-select{min-height:72px;font-size:24px}
+  .quick-note{font-size:17px;line-height:1.4}
+  .stat{padding:18px}
+  .stat b{font-size:36px}
+  .stat span{font-size:16px;line-height:1.25}
+
+  /* Section hierarchy */
+  .section{margin-top:42px}
+  .section-head{margin-bottom:20px;gap:30px}
+  .section-head h2{font-size:48px;line-height:1}
+  .section-head p{font-size:19px;line-height:1.4;margin-top:8px}
+  .link-btn{font-size:18px}
+
+  /* Big category tiles */
+  .category-grid{gap:18px}
+  .category-card{min-height:182px;padding:23px;border-radius:24px}
+  .category-card img{width:68px;height:68px}
+  .category-card strong{font-size:26px}
+  .category-card small{font-size:17px;line-height:1.35}
+
+  /* Search / filters */
+  .toolbar{gap:12px;margin-bottom:18px}
+  .searchbox input,.select,.toolbar .select,.toolbar .searchbox input,.filters-panel .select,.wheel-config .select{
+    min-height:56px;
+    font-size:18px;
+    border-radius:16px;
+  }
+  .searchbox input{padding-left:48px}
+  .filter-bar{gap:10px;margin:14px 0 26px}
+  .filter-label{font-size:16px}
+  .tag-chip,.pack-chip,.player-chip{font-size:17px;padding:11px 15px}
+  .result-count{font-size:17px;font-weight:850}
+
+  /* Grouped game library — compact but still readable on stream */
+  .game-pack-group{margin:34px 0 48px}
+  .game-pack-heading{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    gap:22px;
+    margin-bottom:16px;
+    padding:0 2px 13px;
+    border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  .game-pack-kicker{font-size:16px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+  .game-pack-heading h3{font-size:34px;line-height:1;margin:4px 0 0;letter-spacing:-.035em}
+  .game-pack-count{font-size:17px;font-weight:850;color:var(--muted)}
+  .compact-games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+  .compact-games-grid .game-card{border-radius:20px;min-width:0}
+  .compact-games-grid .game-art{height:132px}
+  .compact-games-grid .game-art-overlay{padding:11px}
+  .compact-games-grid .game-body{padding:14px;gap:10px}
+  .compact-games-grid .game-card h3{font-size:24px;line-height:1.02;letter-spacing:-.03em}
+  .compact-games-grid .game-card p{display:none}
+  .compact-games-grid .pack-badge,.compact-games-grid .status-badge,.compact-games-grid .mini-tag{font-size:15px;padding:7px 9px}
+  .compact-games-grid .mini-row{gap:6px}
+  .compact-games-grid .card-actions{gap:8px}
+  .compact-games-grid .card-actions button{min-height:44px;padding:9px 10px;font-size:16px}
+  .compact-games-grid .fav-btn{font-size:22px}
+
+  /* Non-grouped cards still need to read well */
+  .game-card h3{font-size:31px}
+  .game-card p{font-size:18px}
+  .pack-badge,.status-badge,.mini-tag{font-size:15px}
+  .card-actions button{font-size:17px;min-height:48px}
+
+  /* Pack browser */
+  .packs-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .pack-art{height:218px}
+  .pack-card h3{font-size:29px}
+  .pack-card p,.pack-controls span{font-size:17px}
+  .owned-toggle{font-size:17px;min-height:46px}
+
+  /* Finder */
+  .finder-grid{grid-template-columns:410px minmax(0,1fr);gap:24px}
+  .filters-panel{padding:26px;top:112px}
+  .filters-panel h3{font-size:28px}
+  .field{margin:20px 0}
+  .field label.title{font-size:16px;margin-bottom:10px}
+  .toggle-row{font-size:18px;padding:15px 0}
+  .toggle{width:58px;height:32px}
+  .toggle::after{width:25px;height:25px}
+  .toggle.active::after{left:29px}
+
+  /* Wheel should feel like the main event */
+  .wheel-layout{grid-template-columns:minmax(0,1fr) 440px;gap:24px}
+  .wheel-stage{min-height:760px;padding:28px}
+  .wheel-wrap{width:min(660px,72vh)}
+  .wheel-wrap::after{border-left-width:22px;border-right-width:22px;border-top-width:40px}
+  .spin-btn{min-width:300px;min-height:68px;margin-top:18px;font-size:25px;letter-spacing:.04em}
+  .wheel-result{min-height:110px;margin-top:18px}
+  .wheel-result .winner{font-size:50px;line-height:.98}
+  .wheel-result .winner-sub{font-size:20px;margin-top:8px}
+  .wheel-config{padding:26px;max-height:calc(100vh - 126px)}
+  .wheel-config h3{font-size:31px}
+  .wheel-small{font-size:16px;line-height:1.35}
+  .wheel-list{max-height:290px;gap:8px}
+  .check-row{padding:11px 12px;font-size:17px}
+  .check-row input{width:20px;height:20px}
+
+  /* Modals visible to the stream too */
+  .dialog{width:min(850px,calc(100% - 80px));border-radius:28px}
+  .dialog-inner{padding:30px}
+  .detail-art{min-height:300px;padding:28px}
+  .detail-title{font-size:54px}
+  .detail-desc{font-size:19px;line-height:1.5}
+  .detail-grid{gap:12px;margin:22px 0}
+  .detail-cell{padding:17px}
+  .detail-cell span{font-size:15px}
+  .detail-cell b{font-size:20px}
+  .close-btn{width:50px;height:50px;font-size:25px}
+
+  /* Feedback should be obvious but not interrupt */
+  .toast{
+    bottom:42px;
+    padding:18px 30px;
+    border-radius:18px;
+    font-size:21px;
+    box-shadow:0 22px 70px rgba(0,0,0,.56);
+  }
+  .empty{font-size:18px;padding:48px}
+}
+
+/* Slightly narrower streamed windows / 1440-ish widths */
+@media (min-width:1000px) and (max-width:1399px){
+  .app-shell{width:min(1260px,calc(100% - 48px))}
+  .compact-games-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .packs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wheel-layout{grid-template-columns:minmax(0,1fr) 390px}
+}
