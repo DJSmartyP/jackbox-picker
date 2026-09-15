@@ -294,7 +294,7 @@ function wheelPool(){
 }
 function renderWheel(){
   const pool=wheelPool();
-  app.innerHTML=`<section><div class="section-head"><div><h2>Random Game Wheel</h2><p>Build the pool, spin, remove a result if you want, and spin again.</p></div></div>
+  app.innerHTML=`<section class="wheel-page">
     <div class="wheel-layout"><div class="wheel-stage panel"><div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas>${wheelOverlayMarkup()}</div>
       <button class="primary spin-btn" id="spinBtn" ${pool.length<2?'disabled':''}>${pool.length<2?'Add at least 2 games':'SPIN'}</button>
       <div class="wheel-result" id="wheelResult">${state.wheel.result?winnerHTML(state.wheel.result):`<div class="winner-sub">${pool.length} eligible games on the wheel</div>`}</div>
