@@ -94,74 +94,11 @@ function clearFiltersForView(view){
   if(view==='games' || view==='finder') resetBrowseFilters();
   else if(view==='wheel') resetWheelFilters();
 }
-function historySnapshot(){
-  return {
-    partyPicker:true,
-    view:state.view,
-    search:state.search,
-    pack:state.pack,
-    players:state.players,
-    tags:[...state.tags],
-    match:state.match,
-    ownedOnly:state.ownedOnly,
-    favOnly:state.favOnly,
-    wheel:{
-      players:state.wheel.players,
-      tags:[...state.wheel.tags],
-      packs:[...state.wheel.packs],
-      scope:state.wheel.scope,
-      games:[...state.wheel.games],
-      match:state.wheel.match,
-      angle:state.wheel.angle
-    }
-  };
-}
-function historyUrl(view){return `#${view}`}
-function restoreHistorySnapshot(s){
-  if(!s||!s.partyPicker)return false;
-  state.view=s.view||'home';
-  state.search=s.search||'';
-  state.pack=s.pack??'all';
-  state.players=s.players??null;
-  state.tags=new Set(s.tags||[]);
-  state.match=s.match||'any';
-  state.ownedOnly=!!s.ownedOnly;
-  state.favOnly=!!s.favOnly;
-  if(s.wheel){
-    state.wheel.players=s.wheel.players??null;
-    state.wheel.tags=new Set(s.wheel.tags||[]);
-    state.wheel.packs=new Set(s.wheel.packs||[]);
-    state.wheel.scope=s.wheel.scope||'selected';
-    state.wheel.games=new Set(s.wheel.games||[]);
-    state.wheel.match=s.wheel.match||'any';
-    state.wheel.angle=s.wheel.angle||0;
-    state.wheel.result=null;
-    state.wheel.spinning=false;
-  }
-  return true;
-}
-function setView(view,{fromHistory=false}={}){
-  if(!fromHistory){
-    history.replaceState(historySnapshot(),'',
-      historyUrl(state.view));
-  }
-  if(state.view!==view&&!fromHistory) clearFiltersForView(state.view);
+function setView(view){
+  if(state.view!==view) clearFiltersForView(state.view);
   state.view=view;
-  if(!fromHistory){
-    history.pushState(historySnapshot(),'',historyUrl(view));
-  }
-  window.scrollTo({top:0,behavior:fromHistory?'auto':'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
   render();
-}
-function initHistory(){
-  const validViews=new Set(['home','games','packs','finder','wheel']);
-  if(history.state?.partyPicker){
-    restoreHistorySnapshot(history.state);
-    return;
-  }
-  const hash=location.hash.replace('#','');
-  if(validViews.has(hash)) state.view=hash;
-  history.replaceState(historySnapshot(),'',historyUrl(state.view));
 }
 function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function playerLabel(g){return `${g.min}–${g.max} players`}
@@ -213,7 +150,7 @@ function renderHome(){
   app.innerHTML=`
     <section class="hero">
       <div class="hero-card"><div class="hero-copy">
-        <div class="eyebrow">Unofficial game-night companion</div>
+        <div class="eyebrow">Jackbox Games Picker</div>
         <h1>Stop scrolling.<br><span>Start playing.</span></h1>
         <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
@@ -338,7 +275,7 @@ function spinWheel(){
   requestAnimationFrame(frame);
 }
 
-function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Unofficial fan-made companion. Official game/pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Jackbox Games Picker made by Partycipate. Unofficial fan-made companion; not affiliated with or endorsed by Jackbox Games. Official game/pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
 function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">Party Picker settings</h2></div><button class="close-btn" data-close>×</button></div>
   <section class="settings-section"><h3>My Jackbox collection</h3><p class="detail-desc">These choices stay in this browser and can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></section>
   <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then Party Picker can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
@@ -398,15 +335,5 @@ document.addEventListener('change',e=>{
 // Close dialogs on backdrop click
 [gameDialog,settingsDialog].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
-window.addEventListener('popstate',e=>{
-  if(!e.state?.partyPicker)return;
-  if(gameDialog.open)gameDialog.close();
-  if(settingsDialog.open)settingsDialog.close();
-  restoreHistorySnapshot(e.state);
-  window.scrollTo({top:0,left:0,behavior:'auto'});
-  render();
-});
-
-initHistory();
 render();
 refreshLauncherStatus().then(()=>renderNav());
