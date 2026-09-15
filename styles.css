@@ -741,3 +741,104 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .winner-art{min-height:270px;padding:16px}
   .winner-art-rotated-img{width:170px;top:43%}
 }
+
+
+/* --- Correct game-card crop + stable wheel winner card --- */
+.compact-games-grid .game-art{
+  height:118px;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  background-position:center center !important;
+  background-color:rgba(8,12,22,.92);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.compact-games-grid .game-art::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(5,8,16,.02),rgba(5,8,16,.12));
+  pointer-events:none;
+}
+
+.winner-showcase{width:100%;height:100%;display:flex;flex-direction:column;gap:10px;min-width:0}
+.winner-card{
+  min-width:0;
+  flex:1 1 auto;
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto;
+  border-radius:22px;
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(12,18,34,.96),rgba(7,11,22,.98));
+  border:1px solid rgba(255,255,255,.09);
+}
+.winner-art-frame{
+  position:relative;
+  min-height:0;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:radial-gradient(circle at center,rgba(70,93,150,.16),rgba(7,11,22,.92) 72%);
+}
+.winner-art-frame::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,10,20,0) 55%,rgba(6,10,20,.34) 100%);
+  pointer-events:none;z-index:1;
+}
+.winner-art-rotated-img{
+  position:absolute;
+  left:50%;top:50%;
+  width:min(178%,540px);
+  height:auto;
+  max-width:none;
+  transform:translate(-50%,-50%) rotate(90deg);
+  transform-origin:center;
+  object-fit:contain;
+  filter:drop-shadow(0 16px 28px rgba(0,0,0,.30));
+  z-index:0;
+}
+.winner-art-frame .winner-burst{z-index:2;opacity:.34}
+.winner-copy{
+  position:relative;
+  z-index:3;
+  padding:14px 16px 16px;
+  text-align:left;
+  min-width:0;
+  max-width:none;
+  background:linear-gradient(180deg,rgba(8,12,24,.86),rgba(8,12,24,.98));
+}
+.winner-copy .pack-badge{display:inline-flex;margin-bottom:8px}
+.winner-result-title,.winner-copy .winner{
+  font-size:clamp(24px,2.1vw,34px);
+  line-height:1.02;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  max-width:100%;
+}
+.winner-copy .winner-sub{font-size:15px;line-height:1.3;margin-top:6px;overflow-wrap:anywhere}
+.winner-actions{
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin:0;
+}
+.winner-actions > *{width:100%;min-width:0}
+
+/* cancel the old winner-art layout so it cannot interfere */
+.winner-art{display:none !important}
+
+@media(min-width:1100px){
+  .wheel-page .wheel-result{overflow:hidden;min-width:0}
+  .wheel-page .winner-showcase{height:100%}
+  .wheel-page .winner-card{min-height:0}
+  .wheel-page .winner-art-frame{min-height:180px}
+}
+@media(min-width:1100px) and (max-height:900px){
+  .winner-copy{padding:10px 13px 12px}
+  .winner-copy .winner{font-size:26px}
+  .winner-copy .winner-sub{font-size:13px}
+  .winner-art-rotated-img{width:min(165%,480px)}
+  .wheel-page .winner-art-frame{min-height:155px}
+}
+@media(max-width:900px){
+  .winner-art-frame{min-height:220px}
+  .winner-art-rotated-img{width:min(168%,500px)}
+}
