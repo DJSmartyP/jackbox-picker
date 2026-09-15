@@ -1051,7 +1051,7 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
 }
 .compact-games-grid .card-actions{margin-top:0!important}
 
-/* --- Wheel characters: enlarged corner framing, feet aligned down by the spin button --- */
+/* --- Wheel characters: maximum corner framing, feet locked low by the spin button --- */
 .wheel-wrap{
   overflow:visible !important;
 }
@@ -1065,26 +1065,24 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   z-index:6 !important;
 }
 
-/* Large left character: fills the left corner space and overlaps the wheel slightly */
+/* push both characters as large as possible while keeping them grounded and readable */
 .wheel-character-1{
-  height:76% !important;
-  max-height:560px !important;
-  left:-34% !important;
+  height:88% !important;
+  max-height:660px !important;
+  left:-38% !important;
   right:auto !important;
   bottom:-31% !important;
 }
 
-/* Large right character: bigger than before, but kept clear of the result panel */
 .wheel-character-2{
-  height:68% !important;
-  max-height:500px !important;
-  right:-15% !important;
+  height:79% !important;
+  max-height:590px !important;
+  right:-11% !important;
   left:auto !important;
   bottom:-27% !important;
   z-index:6 !important;
 }
 
-/* keep the wheel/result stack above the bg but below the characters */
 .wheel-wrap,
 .spin-btn,
 .wheel-result{
@@ -1093,33 +1091,33 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
 
 @media (max-width: 1450px){
   .wheel-character-1{
-    height:70% !important;
-    left:-28% !important;
-    bottom:-27% !important;
+    height:82% !important;
+    left:-33% !important;
+    bottom:-29% !important;
   }
   .wheel-character-2{
-    height:62% !important;
-    right:-11% !important;
-    bottom:-23% !important;
+    height:73% !important;
+    right:-8% !important;
+    bottom:-25% !important;
   }
 }
 
 @media (max-width: 1280px){
   .wheel-character-1{
-    height:64% !important;
-    left:-22% !important;
-    bottom:-22% !important;
+    height:74% !important;
+    left:-25% !important;
+    bottom:-24% !important;
   }
   .wheel-character-2{
-    height:56% !important;
-    right:-7% !important;
-    bottom:-18% !important;
+    height:64% !important;
+    right:-3% !important;
+    bottom:-20% !important;
   }
 }
 
 @media (max-width: 1180px){
   .wheel-character-1{
-    height:56% !important;
+    height:60% !important;
     left:-12% !important;
     bottom:-14% !important;
   }
