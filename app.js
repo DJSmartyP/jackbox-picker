@@ -28,6 +28,31 @@ function packArtUrl(id){return packArtwork[id] || 'assets/hero-pattern.png'}
 function gameArtUrl(g){return g.art || packArtUrl(g.pack)}
 function artStyle(id){return `style="background-image:linear-gradient(180deg,rgba(6,10,20,.18),rgba(6,10,20,.78)),url('${packArtUrl(id)}')"`}
 function gameArtStyle(g){return `style="background-image:linear-gradient(180deg,rgba(6,10,20,.12),rgba(6,10,20,.78)),url('${gameArtUrl(g)}')"`}
+function gameArtOnlyStyle(g){return `style="background-image:url('${gameArtUrl(g)}')"`}
+const wheelOverlayFamilies={
+  female:['assets/wheel-overlays/female-1.png','assets/wheel-overlays/female-2.png','assets/wheel-overlays/female-3.png'],
+  male:['assets/wheel-overlays/male-1.png','assets/wheel-overlays/male-2.png','assets/wheel-overlays/male-3.png'],
+  smarty:['assets/wheel-overlays/smarty-1.png','assets/wheel-overlays/smarty-2.png'],
+  robot:['assets/wheel-overlays/robot-1.png','assets/wheel-overlays/robot-2.png','assets/wheel-overlays/robot-3.png'],
+  cat:['assets/wheel-overlays/cat-1.png','assets/wheel-overlays/cat-2.png'],
+  pizza:['assets/wheel-overlays/pizza-1.png','assets/wheel-overlays/pizza-2.png'],
+  disco:['assets/wheel-overlays/disco-1.png','assets/wheel-overlays/disco-2.png'],
+  penguin:['assets/wheel-overlays/penguin-1.png','assets/wheel-overlays/penguin-2.png'],
+  dog:['assets/wheel-overlays/dog-1.png'],
+  lava:['assets/wheel-overlays/lava-1.png'],
+  bee:['assets/wheel-overlays/bee-1.png'],
+  alien:['assets/wheel-overlays/alien-1.png','assets/wheel-overlays/alien-2.png'],
+  platypus:['assets/wheel-overlays/platypus-1.png'],
+  unicorn:['assets/wheel-overlays/unicorn-1.png']
+};
+function randomFrom(list){return list[Math.floor(Math.random()*list.length)]}
+function chooseWheelOverlaySet(){
+  const families=Object.keys(wheelOverlayFamilies).sort(()=>Math.random()-.5);
+  const selected=families.slice(0,2);
+  return selected.map(family=>({family,src:randomFrom(wheelOverlayFamilies[family])}));
+}
+const sessionWheelOverlays=chooseWheelOverlaySet();
+function wheelOverlayMarkup(){return sessionWheelOverlays.map((item,i)=>`<img class="wheel-character wheel-character-${i+1}" src="${item.src}" alt="" aria-hidden="true">`).join('')}
 
 const tagMeta = {
   drawing:{label:'Drawing',icon:'assets/categories/drawing.png'},
@@ -270,7 +295,7 @@ function wheelPool(){
 function renderWheel(){
   const pool=wheelPool();
   app.innerHTML=`<section><div class="section-head"><div><h2>Random Game Wheel</h2><p>Build the pool, spin, remove a result if you want, and spin again.</p></div></div>
-    <div class="wheel-layout"><div class="wheel-stage panel"><div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas></div>
+    <div class="wheel-layout"><div class="wheel-stage panel"><div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas>${wheelOverlayMarkup()}</div>
       <button class="primary spin-btn" id="spinBtn" ${pool.length<2?'disabled':''}>${pool.length<2?'Add at least 2 games':'SPIN'}</button>
       <div class="wheel-result" id="wheelResult">${state.wheel.result?winnerHTML(state.wheel.result):`<div class="winner-sub">${pool.length} eligible games on the wheel</div>`}</div>
     </div><aside class="wheel-config panel">
@@ -286,7 +311,7 @@ function renderWheel(){
   requestAnimationFrame(drawWheel);
 }
 function wheelBaseForChecklist(){let pool=games.filter(g=>!g.upcoming&&gameFitsPlayers(g,state.wheel.players)&&tagMatch(g,state.wheel.tags,state.wheel.match));if(state.wheel.scope==='selected')pool=pool.filter(g=>state.wheel.packs.has(g.pack));if(state.wheel.scope==='owned')pool=pool.filter(g=>state.owned.has(g.pack));if(state.wheel.scope==='favourites')pool=pool.filter(g=>state.favourites.has(g.id));return pool}
-function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-art" ${gameArtStyle(g)}><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,packInfo(g.pack).kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
+function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-art" ${gameArtOnlyStyle(g)}><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,packInfo(g.pack).kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
 function drawWheel(angle=state.wheel.angle){
   const canvas=document.getElementById('wheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),pool=wheelPool(),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=H*.46;ctx.clearRect(0,0,W,H);
   if(!pool.length){ctx.fillStyle='#1c2741';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeb8d0';ctx.font='700 34px system-ui';ctx.textAlign='center';ctx.fillText('No games match',cx,cy);return}
