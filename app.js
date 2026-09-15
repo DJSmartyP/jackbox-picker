@@ -94,11 +94,74 @@ function clearFiltersForView(view){
   if(view==='games' || view==='finder') resetBrowseFilters();
   else if(view==='wheel') resetWheelFilters();
 }
-function setView(view){
-  if(state.view!==view) clearFiltersForView(state.view);
+function historySnapshot(){
+  return {
+    partyPicker:true,
+    view:state.view,
+    search:state.search,
+    pack:state.pack,
+    players:state.players,
+    tags:[...state.tags],
+    match:state.match,
+    ownedOnly:state.ownedOnly,
+    favOnly:state.favOnly,
+    wheel:{
+      players:state.wheel.players,
+      tags:[...state.wheel.tags],
+      packs:[...state.wheel.packs],
+      scope:state.wheel.scope,
+      games:[...state.wheel.games],
+      match:state.wheel.match,
+      angle:state.wheel.angle
+    }
+  };
+}
+function historyUrl(view){return `#${view}`}
+function restoreHistorySnapshot(s){
+  if(!s||!s.partyPicker)return false;
+  state.view=s.view||'home';
+  state.search=s.search||'';
+  state.pack=s.pack??'all';
+  state.players=s.players??null;
+  state.tags=new Set(s.tags||[]);
+  state.match=s.match||'any';
+  state.ownedOnly=!!s.ownedOnly;
+  state.favOnly=!!s.favOnly;
+  if(s.wheel){
+    state.wheel.players=s.wheel.players??null;
+    state.wheel.tags=new Set(s.wheel.tags||[]);
+    state.wheel.packs=new Set(s.wheel.packs||[]);
+    state.wheel.scope=s.wheel.scope||'selected';
+    state.wheel.games=new Set(s.wheel.games||[]);
+    state.wheel.match=s.wheel.match||'any';
+    state.wheel.angle=s.wheel.angle||0;
+    state.wheel.result=null;
+    state.wheel.spinning=false;
+  }
+  return true;
+}
+function setView(view,{fromHistory=false}={}){
+  if(!fromHistory){
+    history.replaceState(historySnapshot(),'',
+      historyUrl(state.view));
+  }
+  if(state.view!==view&&!fromHistory) clearFiltersForView(state.view);
   state.view=view;
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(!fromHistory){
+    history.pushState(historySnapshot(),'',historyUrl(view));
+  }
+  window.scrollTo({top:0,behavior:fromHistory?'auto':'smooth'});
   render();
+}
+function initHistory(){
+  const validViews=new Set(['home','games','packs','finder','wheel']);
+  if(history.state?.partyPicker){
+    restoreHistorySnapshot(history.state);
+    return;
+  }
+  const hash=location.hash.replace('#','');
+  if(validViews.has(hash)) state.view=hash;
+  history.replaceState(historySnapshot(),'',historyUrl(state.view));
 }
 function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function playerLabel(g){return `${g.min}–${g.max} players`}
@@ -120,21 +183,9 @@ async function refreshLauncherStatus(){
   }catch{state.launcher.online=false;state.launcher.configured=new Set()}
   return state.launcher.online;
 }
-function tidyAfterLaunch(){
-  clearTimeout(tidyAfterLaunch._timer);
-  tidyAfterLaunch._timer=setTimeout(()=>{
-    if(gameDialog.open)gameDialog.close();
-    if(settingsDialog.open)settingsDialog.close();
-    window.scrollTo({top:0,left:0,behavior:'auto'});
-  },5000);
-}
 async function launchPack(id){
   if(!state.launcher.token){showToast('Open Settings and pair the local launcher first');return}
-  try{
-    await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');
-    showToast(`▶ Launching ${packBadge(packInfo(id))}`);
-    tidyAfterLaunch();
-  }
+  try{await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');showToast(`▶ Launching ${packBadge(packInfo(id))}`)}
   catch(err){showToast(err.message||'Launcher unavailable')}
 }
 function launchButton(packId,label='Launch Pack'){
@@ -347,5 +398,15 @@ document.addEventListener('change',e=>{
 // Close dialogs on backdrop click
 [gameDialog,settingsDialog].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
+window.addEventListener('popstate',e=>{
+  if(!e.state?.partyPicker)return;
+  if(gameDialog.open)gameDialog.close();
+  if(settingsDialog.open)settingsDialog.close();
+  restoreHistorySnapshot(e.state);
+  window.scrollTo({top:0,left:0,behavior:'auto'});
+  render();
+});
+
+initHistory();
 render();
 refreshLauncherStatus().then(()=>renderNav());
