@@ -42,46 +42,24 @@ const wheelOverlayFamilies={
     'assets/wheel-overlays/male-3.png',
     'assets/wheel-overlays/male-4.png'
   ],
-  monkey:[
-    'assets/wheel-overlays/monkey-1.png',
-    'assets/wheel-overlays/monkey-2.png'
-  ],
-  fox:[
-    'assets/wheel-overlays/mascot-fox.png'
-  ],
-  chameleon:[
-    'assets/wheel-overlays/mascot-chameleon.png'
-  ],
-  artbot:[
-    'assets/wheel-overlays/mascot-artbot.png'
-  ],
-  bat:[
-    'assets/wheel-overlays/mascot-bat.png'
-  ],
-  raccoon:[
-    'assets/wheel-overlays/mascot-raccoon.png'
-  ],
-  parrot:[
-    'assets/wheel-overlays/mascot-parrot.png'
-  ],
-  slime:[
-    'assets/wheel-overlays/mascot-slime.png'
-  ],
-  disco:[
-    'assets/wheel-overlays/mascot-disco.png'
-  ],
-  cyclops:[
-    'assets/wheel-overlays/mascot-cyclops.png'
-  ],
-  cupidGhost:[
-    'assets/wheel-overlays/mascot-cupid-ghost.png'
-  ],
   smarty:[
     'assets/wheel-overlays/smarty-1.png',
     'assets/wheel-overlays/smarty-2.png',
     'assets/wheel-overlays/smarty-3.png',
-    'assets/wheel-overlays/smarty-4.png'
-  ]
+    'assets/wheel-overlays/smarty-4.png',
+    'assets/wheel-overlays/smarty-5.png',
+    'assets/wheel-overlays/smarty-6.png'
+  ],
+  fox:['assets/wheel-overlays/mascot-fox.png'],
+  chameleon:['assets/wheel-overlays/mascot-chameleon.png'],
+  artbot:['assets/wheel-overlays/mascot-artbot.png'],
+  bat:['assets/wheel-overlays/mascot-bat.png'],
+  raccoon:['assets/wheel-overlays/mascot-raccoon.png'],
+  parrot:['assets/wheel-overlays/mascot-parrot.png'],
+  slime:['assets/wheel-overlays/mascot-slime.png'],
+  disco:['assets/wheel-overlays/mascot-disco.png'],
+  cupidGhost:['assets/wheel-overlays/mascot-cupid-ghost.png'],
+  cyclops:['assets/wheel-overlays/mascot-cyclops.png']
 };
 function randomFrom(list){return list[Math.floor(Math.random()*list.length)]}
 function chooseWheelOverlaySet(){
@@ -94,6 +72,20 @@ function chooseWheelOverlaySet(){
 }
 const sessionWheelOverlays=chooseWheelOverlaySet();
 function wheelOverlayMarkup(){return sessionWheelOverlays.map((item,i)=>`<img class="wheel-character wheel-character-${i+1}" src="${item.src}" alt="" aria-hidden="true">`).join('')}
+const wheelBanners=[
+  {src:'assets/wheel-banners/the_wheel_knows_best_banner.png',label:'The Wheel Knows Best'},
+  {src:'assets/wheel-banners/press_your_luck_game_show_marquee.png',label:'Press Your Luck'},
+  {src:'assets/wheel-banners/wheel_of_questionable_decisions_sign.png',label:'Wheel of Questionable Decisions'},
+  {src:'assets/wheel-banners/chaos_but_make_it_fun_banner.png',label:'Chaos, But Make It Fun'},
+  {src:'assets/wheel-banners/neon_velvet_spin_banner.png',label:'Neon Velvet Spin'},
+  {src:'assets/wheel-banners/tonight_s_questionable_choices_banner.png',label:'Tonight\'s Questionable Choices'},
+  {src:'assets/wheel-banners/good_ideas_bad_ideas_great_stories.png',label:'Good Ideas, Bad Ideas, Great Stories'},
+  {src:'assets/wheel-banners/let_the_wheel_decide_marquee.png',label:'Let the Wheel Decide'},
+  {src:'assets/wheel-banners/spin_first_ask_questions_later.png',label:'Spin First, Ask Questions Later'},
+  {src:'assets/wheel-banners/pick_your_fate_velvet_banner.png',label:'Pick Your Fate'}
+];
+const sessionWheelBanner=randomFrom(wheelBanners);
+function wheelBannerMarkup(){return `<div class="wheel-banner-frame"><img class="wheel-banner-image" src="${sessionWheelBanner.src}" alt="${sessionWheelBanner.label}"></div>`}
 
 const tagMeta = {
   drawing:{label:'Drawing',icon:'assets/categories/drawing.png'},
@@ -311,9 +303,6 @@ function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g
 
 function renderFinder(){
   const list=filteredGames();
-  const selectable=list.filter(g=>!g.upcoming);
-  const selectedCount=state.wheel.games.size;
-  const allCurrentSelected=selectable.length>0&&selectable.every(g=>state.wheel.games.has(g.id));
   app.innerHTML=`<section><div class="section-head"><div><h2>Find a Game</h2><p>Build a shortlist around the people actually in the room.</p></div></div>
   <div class="finder-grid"><aside class="filters-panel panel">
     <h3>Your group</h3>
@@ -323,7 +312,7 @@ function renderFinder(){
     <div class="toggle-row"><div><b>Only packs I own</b><div class="wheel-small">Stored on this device</div></div><button class="toggle ${state.ownedOnly?'active':''}" data-toggle-owned></button></div>
     <div class="toggle-row"><div><b>Only favourites</b><div class="wheel-small">Your saved game shortlist</div></div><button class="toggle ${state.favOnly?'active':''}" data-toggle-fav></button></div>
     <button class="ghost" style="width:100%;margin-top:14px" data-clear-filters>Clear filters</button>
-  </aside><div><div class="section-head finder-results-head"><div><h2 style="font-size:32px">${list.length} matches</h2><p>${finderSummary()}${selectedCount?` · <b>${selectedCount} selected for wheel</b>`:''}</p></div><div class="finder-wheel-actions">${selectable.length?`<button class="ghost" data-select-all-matches ${allCurrentSelected?'disabled':''}>${allCurrentSelected?'✓ All matches selected':'Select all matches'}</button>`:''}${selectedCount?'<button class="ghost" data-clear-wheel-selection>Clear selected</button>':''}<button class="primary" data-send-wheel ${selectedCount?'':'disabled'}>Send ${selectedCount||''} selected to wheel</button></div></div>${list.length?groupedGameSections(list):'<div class="empty">Try widening the player count or interaction filters.</div>'}</div></div></section>`;
+  </aside><div><div class="section-head"><div><h2 style="font-size:32px">${list.length} matches</h2><p>${finderSummary()}</p></div>${list.length?'<button class="primary" data-send-wheel>Send matches to wheel</button>':''}</div>${list.length?groupedGameSections(list):'<div class="empty">Try widening the player count or interaction filters.</div>'}</div></div></section>`;
 }
 function finderSummary(){let bits=[];if(state.players)bits.push(playerOptionLabel(state.players));if(state.tags.size)bits.push([...state.tags].map(t=>tagMeta[t].label).join(state.match==='all'?' + ':' or '));if(state.ownedOnly)bits.push('owned packs');if(state.favOnly)bits.push('favourites');return bits.length?`Matching ${bits.join(' · ')}`:'No filters applied yet.'}
 
@@ -338,7 +327,7 @@ function wheelPool(){
 function renderWheel(){
   const pool=wheelPool();
   app.innerHTML=`<section class="wheel-page">
-    <div class="wheel-layout"><div class="wheel-stage panel"><div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas>${wheelOverlayMarkup()}</div>
+    <div class="wheel-layout"><div class="wheel-stage panel">${wheelBannerMarkup()}<div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas>${wheelOverlayMarkup()}</div>
       <button class="primary spin-btn" id="spinBtn" ${pool.length<2?'disabled':''}>${pool.length<2?'Add at least 2 games':'SPIN'}</button>
       <div class="wheel-result" id="wheelResult">${state.wheel.result?winnerHTML(state.wheel.result):`<div class="winner-sub">${pool.length} eligible games on the wheel</div>`}</div>
     </div><aside class="wheel-config panel">
@@ -401,10 +390,8 @@ document.addEventListener('click',e=>{
   if(b.dataset.packOpen){state.pack=String(b.dataset.packOpen);setView('games');return}
   if(b.dataset.launchPack){e.stopPropagation();launchPack(String(b.dataset.launchPack));return}
   if(b.dataset.saveLauncher!==undefined){state.launcher.token=(document.getElementById('launcherToken')?.value||'').trim();save();refreshLauncherStatus().then(()=>{showToast(state.launcher.online?'✓ Launcher connected':'Launcher not reachable');showSettings()});return}
-  if(b.dataset.wheelAdd){const id=b.dataset.wheelAdd;const g=games.find(x=>x.id===id);const already=state.wheel.games.has(id);if(state.view==='finder'&&already){state.wheel.games.delete(id);showToast(`Removed ${g.title} from wheel selection`)}else{state.wheel.games.add(id);showToast(already?`${g.title} is already on the wheel`:`✓ ${g.title} selected for wheel`)}state.wheel.explicit=state.wheel.games.size>0;state.wheel.packs=new Set(games.filter(x=>state.wheel.games.has(x.id)).map(x=>x.pack));state.wheel.scope='selected';save();if(state.view==='finder')renderFinder();else{b.textContent='✓ Added';b.classList.add('added');setTimeout(()=>{if(document.body.contains(b)){b.textContent='✓ On Wheel';b.classList.add('added')}},1400)}return}
-  if(b.dataset.selectAllMatches!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.explicit=list.length>0;state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.scope='selected';state.wheel.result=null;save();showToast(`✓ Selected all ${list.length} current match${list.length===1?'':'es'}`);renderFinder();return}
-  if(b.dataset.clearWheelSelection!==undefined){state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();showToast('Wheel selection cleared');renderFinder();return}
-  if(b.dataset.sendWheel!==undefined){const list=games.filter(g=>!g.upcoming&&state.wheel.games.has(g.id));if(!list.length){showToast('Choose at least one game with + Wheel first');return}state.wheel.games=new Set(list.map(g=>g.id));state.wheel.explicit=true;state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=null;state.wheel.tags.clear();state.wheel.match='any';state.wheel.result=null;save();showToast(`✓ ${list.length} selected game${list.length===1?'':'s'} sent to wheel`);setView('wheel');return}
+  if(b.dataset.wheelAdd){const id=b.dataset.wheelAdd;const g=games.find(x=>x.id===id);const already=state.wheel.games.has(id);state.wheel.games.add(id);state.wheel.explicit=true;state.wheel.packs.add(g.pack);state.wheel.scope='selected';save();showToast(already?`${g.title} is already on the wheel`:`✓ ${g.title} added to wheel`);b.textContent='✓ Added';b.classList.add('added');setTimeout(()=>{if(document.body.contains(b)){b.textContent='✓ On Wheel';b.classList.add('added')}},1400);return}
+  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.explicit=true;state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=null;state.wheel.tags.clear();state.wheel.match='any';state.wheel.result=null;save();showToast(`✓ ${list.length} match${list.length===1?'':'es'} sent to wheel`);setView('wheel');return}
   if(b.dataset.wheelTag){const t=b.dataset.wheelTag;state.wheel.tags.has(t)?state.wheel.tags.delete(t):state.wheel.tags.add(t);state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
   if(b.dataset.wheelPack){const id=packIdFromDataset(b.dataset.wheelPack);state.wheel.packs.has(id)?state.wheel.packs.delete(id):state.wheel.packs.add(id);state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
   if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
