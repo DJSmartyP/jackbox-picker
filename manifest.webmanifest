@@ -1,10 +1,10 @@
 {
-  "name": "PARTYCIPATE \u2014 Jackbox Companion",
-  "short_name": "PARTYCIPATE",
+  "name": "Jackbox Games Picker \u2014 Made by Partycipate",
+  "short_name": "Jackbox Picker",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#070812",
+  "theme_color": "#070812",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
@@ -16,6 +16,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "description": "PARTYCIPATE Jackbox companion for browsing, filtering and choosing what to play."
+  ]
 }

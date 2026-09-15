@@ -40,7 +40,7 @@ const state = {
   owned:new Set(JSON.parse(localStorage.getItem('partyPickerOwned') || '[]')),
   favourites:new Set(JSON.parse(localStorage.getItem('partyPickerFavourites') || '[]')),
   launcher:{base:'http://127.0.0.1:8765',token:localStorage.getItem('partyPickerLauncherToken') || '',configured:new Set(),online:false},
-  wheel:{players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(JSON.parse(localStorage.getItem('partyPickerWheelGames') || '[]')),match:'any',angle:0,spinning:false,result:null}
+  wheel:{players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(JSON.parse(localStorage.getItem('partyPickerWheelGames') || '[]')),explicit:JSON.parse(localStorage.getItem('partyPickerWheelGames') || '[]').length>0,match:'any',angle:0,spinning:false,result:null}
 };
 
 function save(){
@@ -94,11 +94,32 @@ function clearFiltersForView(view){
   if(view==='games' || view==='finder') resetBrowseFilters();
   else if(view==='wheel') resetWheelFilters();
 }
-function setView(view){
-  if(state.view!==view) clearFiltersForView(state.view);
+function historySnapshot(){
+  return {
+    partyPicker:true,view:state.view,search:state.search,pack:state.pack,players:state.players,tags:[...state.tags],match:state.match,ownedOnly:state.ownedOnly,favOnly:state.favOnly,
+    wheel:{players:state.wheel.players,tags:[...state.wheel.tags],packs:[...state.wheel.packs],scope:state.wheel.scope,games:[...state.wheel.games],explicit:!!state.wheel.explicit,match:state.wheel.match,angle:state.wheel.angle}
+  };
+}
+function historyUrl(view){return `#${view}`}
+function restoreHistorySnapshot(s){
+  if(!s||!s.partyPicker)return false;
+  state.view=s.view||'home';state.search=s.search||'';state.pack=s.pack??'all';state.players=s.players??null;state.tags=new Set(s.tags||[]);state.match=s.match||'any';state.ownedOnly=!!s.ownedOnly;state.favOnly=!!s.favOnly;
+  if(s.wheel){state.wheel.players=s.wheel.players??null;state.wheel.tags=new Set(s.wheel.tags||[]);state.wheel.packs=new Set(s.wheel.packs||[]);state.wheel.scope=s.wheel.scope||'selected';state.wheel.games=new Set(s.wheel.games||[]);state.wheel.explicit=!!s.wheel.explicit;state.wheel.match=s.wheel.match||'any';state.wheel.angle=s.wheel.angle||0;state.wheel.result=null;state.wheel.spinning=false}
+  return true;
+}
+function setView(view,{fromHistory=false}={}){
+  if(!fromHistory)history.replaceState(historySnapshot(),'',historyUrl(state.view));
+  if(state.view!==view&&!fromHistory)clearFiltersForView(state.view);
   state.view=view;
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(!fromHistory)history.pushState(historySnapshot(),'',historyUrl(view));
+  window.scrollTo({top:0,left:0,behavior:fromHistory?'auto':'smooth'});
   render();
+}
+function initHistory(){
+  const validViews=new Set(['home','games','packs','finder','wheel']);
+  if(history.state?.partyPicker){restoreHistorySnapshot(history.state);return}
+  const hash=location.hash.replace('#','');if(validViews.has(hash))state.view=hash;
+  history.replaceState(historySnapshot(),'',historyUrl(state.view));
 }
 function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function playerLabel(g){return `${g.min}–${g.max} players`}
@@ -120,24 +141,26 @@ async function refreshLauncherStatus(){
   }catch{state.launcher.online=false;state.launcher.configured=new Set()}
   return state.launcher.online;
 }
+function tidyAfterLaunch(){
+  clearTimeout(tidyAfterLaunch._timer);
+  tidyAfterLaunch._timer=setTimeout(()=>{if(gameDialog.open)gameDialog.close();if(settingsDialog.open)settingsDialog.close();window.scrollTo({top:0,left:0,behavior:'auto'})},5000);
+}
 async function launchPack(id){
   if(!state.launcher.token){showToast('Open Settings and pair the local launcher first');return}
-  try{await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');showToast(`▶ Launching ${packBadge(packInfo(id))}`)}
+  try{await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');showToast(`▶ Launching ${packBadge(packInfo(id))}`);tidyAfterLaunch()}
   catch(err){showToast(err.message||'Launcher unavailable')}
 }
 function launchButton(packId,label='Launch Pack'){
   const configured=state.launcher.configured.has(String(packId));
   return `<button class="launch-btn ${configured?'ready':''}" data-launch-pack="${packId}">▶ ${label}</button>`;
 }
-function wheelSelectionCount(){return state.wheel.games.size}
-function updateWheelNav(){const count=wheelSelectionCount();document.querySelectorAll('[data-view="wheel"]').forEach(b=>{const mobile=!!b.closest('.mobile-nav');b.innerHTML=`<img class="wheel-badge-icon" src="assets/ui/wheel-badge.png" alt=""><span>${mobile?'Wheel':'Wheel'}</span><b class="nav-wheel-count ${count?'' :'empty'}">${count}</b>`})}
+function updateWheelNav(){document.querySelectorAll('[data-view="wheel"]').forEach(b=>{b.innerHTML=`<img class="wheel-badge-icon" src="assets/ui/partycipate-wheel.png" alt=""><span>Wheel</span>`})}
 
 function renderNav(){
   updateWheelNav();
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
 }
 function render(){
-  app.classList.toggle('home-screen',state.view==='home');
   if(state.view==='home') renderHome();
   else if(state.view==='games') renderGames();
   else if(state.view==='packs') renderPacks();
@@ -151,7 +174,7 @@ function renderHome(){
   app.innerHTML=`
     <section class="hero">
       <div class="hero-card"><div class="hero-copy">
-        <div class="eyebrow">Unofficial game-night companion</div>
+        <div class="eyebrow">JACKBOX GAMES PICKER · MADE BY PARTYCIPATE</div>
         <h1>Stop scrolling.<br><span>Start playing.</span></h1>
         <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
@@ -199,7 +222,7 @@ function filtersHTML(){return `
     <div class="toolbar toolbar-main"><div class="searchbox"><input id="searchInput" value="${esc(state.search)}" placeholder="Search games, packs or styles…"></div>
       <select class="select" id="packSelect"><option value="all">All collections</option>${packs.map(p=>`<option value="${p.id}" ${String(state.pack)===String(p.id)?'selected':''}>${packBadge(p)}${p.status==='upcoming'?' · Upcoming':''}</option>`).join('')}</select>
       <select class="select" id="playerSelect"><option value="">Any players</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
-    <div class="filter-bar filter-bar-clean"><div class="filter-chip-row"><span class="filter-label">Interaction</span>${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}" data-tag="${t}">${tagMeta[t].label}</button>`).join('')}
+    <div class="filter-bar filter-bar-clean"><div class="filter-chip-row"><span class="filter-label">Interaction</span>${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}" data-tag="${t}"><img class="tag-chip-icon" src="${tagMeta[t].icon}" alt="">${tagMeta[t].label}</button>`).join('')}
       <button class="tag-chip utility-chip ${state.ownedOnly?'active':''}" data-filter-owned>Owned</button><button class="tag-chip utility-chip ${state.favOnly?'active':''}" data-filter-fav>★ Favourites</button></div>
       <div class="filter-meta-row"><select class="select" id="matchSelect" ${state.tags.size<2?'disabled':''}><option value="any" ${state.match==='any'?'selected':''}>Match any</option><option value="all" ${state.match==='all'?'selected':''}>Match all</option></select><span class="result-count">${filteredGames().length} games</span></div></div>
   </div>`}
@@ -225,7 +248,7 @@ function renderFinder(){
   <div class="finder-grid"><aside class="filters-panel panel">
     <h3>Your group</h3>
     <div class="field"><label class="title">Players</label><select id="finderPlayerSelect" class="select stream-select" style="width:100%"><option value="" ${state.players===null?'selected':''}>Any group size</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} player${n===1?'':'s'}</option>`).join('')}</select></div>
-    <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}">${tagMeta[t].label}</button>`).join('')}</div></div>
+    <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}"><img class="tag-chip-icon" src="${tagMeta[t].icon}" alt="">${tagMeta[t].label}</button>`).join('')}</div></div>
     <div class="field"><label class="title">When several are selected</label><select class="select" id="matchSelect" style="width:100%"><option value="any" ${state.match==='any'?'selected':''}>Match any category</option><option value="all" ${state.match==='all'?'selected':''}>Match every category</option></select></div>
     <div class="toggle-row"><div><b>Only packs I own</b><div class="wheel-small">Stored on this device</div></div><button class="toggle ${state.ownedOnly?'active':''}" data-toggle-owned></button></div>
     <div class="toggle-row"><div><b>Only favourites</b><div class="wheel-small">Your saved game shortlist</div></div><button class="toggle ${state.favOnly?'active':''}" data-toggle-fav></button></div>
@@ -235,11 +258,11 @@ function renderFinder(){
 function finderSummary(){let bits=[];if(state.players)bits.push(`${state.players} players`);if(state.tags.size)bits.push([...state.tags].map(t=>tagMeta[t].label).join(state.match==='all'?' + ':' or '));if(state.ownedOnly)bits.push('owned packs');if(state.favOnly)bits.push('favourites');return bits.length?`Matching ${bits.join(' · ')}`:'No filters applied yet.'}
 
 function wheelPool(){
+  if(state.wheel.explicit&&state.wheel.games.size)return games.filter(g=>!g.upcoming&&state.wheel.games.has(g.id));
   let pool=games.filter(g=>!g.upcoming && gameFitsPlayers(g,state.wheel.players) && tagMatch(g,state.wheel.tags,state.wheel.match));
   if(state.wheel.scope==='owned') pool=pool.filter(g=>state.owned.has(g.pack));
   else if(state.wheel.scope==='favourites') pool=pool.filter(g=>state.favourites.has(g.id));
   else if(state.wheel.scope==='selected') pool=pool.filter(g=>state.wheel.packs.has(g.pack));
-  if(state.wheel.games.size) pool=pool.filter(g=>state.wheel.games.has(g.id));
   return pool;
 }
 function renderWheel(){
@@ -249,9 +272,9 @@ function renderWheel(){
       <button class="primary spin-btn" id="spinBtn" ${pool.length<2?'disabled':''}>${pool.length<2?'Add at least 2 games':'SPIN'}</button>
       <div class="wheel-result" id="wheelResult">${state.wheel.result?winnerHTML(state.wheel.result):`<div class="winner-sub">${pool.length} eligible games on the wheel</div>`}</div>
     </div><aside class="wheel-config panel">
-      <h3>Build your wheel</h3>
+      <h3>Build your wheel</h3>${state.wheel.explicit&&state.wheel.games.size?`<div class="explicit-wheel-note">Using ${state.wheel.games.size} selected game${state.wheel.games.size===1?'':'s'}</div>`:''}
       <div class="field"><label class="title">Players</label><select id="wheelPlayers" class="select" style="width:100%"><option value="">Any group size</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.wheel.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
-      <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.wheel.tags.has(t)?'active':''}" data-wheel-tag="${t}">${tagMeta[t].label}</button>`).join('')}</div></div>
+      <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.wheel.tags.has(t)?'active':''}" data-wheel-tag="${t}"><img class="tag-chip-icon" src="${tagMeta[t].icon}" alt="">${tagMeta[t].label}</button>`).join('')}</div></div>
       <div class="field"><label class="title">Category matching</label><select class="select" id="wheelMatch" style="width:100%"><option value="any" ${state.wheel.match==='any'?'selected':''}>Match any selected category</option><option value="all" ${state.wheel.match==='all'?'selected':''}>Match all selected categories</option></select></div>
       <div class="field"><label class="title">Source</label><select class="select" id="wheelScope" style="width:100%"><option value="selected" ${state.wheel.scope==='selected'?'selected':''}>Selected packs</option><option value="owned" ${state.wheel.scope==='owned'?'selected':''}>Packs I own</option><option value="favourites" ${state.wheel.scope==='favourites'?'selected':''}>Favourites only</option></select></div>
       ${state.wheel.scope==='selected'?`<div class="field"><label class="title">Packs</label><div class="range-row">${packs.filter(p=>p.status==='released').map(p=>`<button class="pack-chip ${state.wheel.packs.has(p.id)?'active':''}" data-wheel-pack="${p.id}">${packChipLabel(p)}</button>`).join('')}</div></div>`:''}
@@ -276,16 +299,16 @@ function spinWheel(){
   requestAnimationFrame(frame);
 }
 
-function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Unofficial fan-made companion. Official game/pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
-function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">Party Picker settings</h2></div><button class="close-btn" data-close>×</button></div>
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Jackbox Games Picker is an unofficial fan-made tool by Partycipate. Official Jackbox game and pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">Jackbox Games Picker settings</h2></div><button class="close-btn" data-close>×</button></div>
   <section class="settings-section"><h3>My Jackbox collection</h3><p class="detail-desc">These choices stay in this browser and can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></section>
-  <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then Party Picker can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
-    <label class="title" for="launcherToken">Pairing token</label><div class="launcher-token-row"><input id="launcherToken" class="launcher-token-input" value="${esc(state.launcher.token)}" placeholder="Paste token from Party Picker Launcher"><button class="primary" data-save-launcher>Save & test</button></div>
+  <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then Jackbox Games Picker can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
+    <label class="title" for="launcherToken">Pairing token</label><div class="launcher-token-row"><input id="launcherToken" class="launcher-token-input" value="${esc(state.launcher.token)}" placeholder="Paste token from the launcher helper"><button class="primary" data-save-launcher>Save & test</button></div>
     <div class="launcher-note">Helper address: <code>${state.launcher.base}</code>. Keep the helper running while you play.</div>
     ${state.launcher.online&&state.launcher.token?`<div class="launcher-configured"><b>${state.launcher.configured.size}</b> shortcut${state.launcher.configured.size===1?'':'s'} configured</div>`:''}
   </section></div>`;if(!settingsDialog.open)settingsDialog.showModal();refreshLauncherStatus().then(()=>{if(settingsDialog.open){const badge=settingsDialog.querySelector('.launcher-status');if(badge){badge.className=`launcher-status ${state.launcher.online?'online':'offline'}`;badge.textContent=state.launcher.online?'● Helper online':'● Helper offline'}}})}
 
-function resetWheel(){state.wheel={players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null};save();renderWheel()}
+function resetWheel(){state.wheel={players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),explicit:false,match:'any',angle:0,spinning:false,result:null};save();renderWheel()}
 
 // Global click handling
 document.addEventListener('click',e=>{
@@ -308,11 +331,11 @@ document.addEventListener('click',e=>{
   if(b.dataset.packOpen){state.pack=String(b.dataset.packOpen);setView('games');return}
   if(b.dataset.launchPack){e.stopPropagation();launchPack(String(b.dataset.launchPack));return}
   if(b.dataset.saveLauncher!==undefined){state.launcher.token=(document.getElementById('launcherToken')?.value||'').trim();save();refreshLauncherStatus().then(()=>{showToast(state.launcher.online?'✓ Launcher connected':'Launcher not reachable');showSettings()});return}
-  if(b.dataset.wheelAdd){const id=b.dataset.wheelAdd;const g=games.find(x=>x.id===id);const already=state.wheel.games.has(id);state.wheel.games.add(id);state.wheel.packs.add(g.pack);state.wheel.scope='selected';save();showToast(already?`${g.title} is already on the wheel`:`✓ ${g.title} added to wheel`);b.textContent='✓ Added';b.classList.add('added');setTimeout(()=>{if(document.body.contains(b)){b.textContent='✓ On Wheel';b.classList.add('added')}},1400);return}
-  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=state.players;state.wheel.tags=new Set(state.tags);state.wheel.match=state.match;save();setView('wheel');return}
-  if(b.dataset.wheelTag){const t=b.dataset.wheelTag;state.wheel.tags.has(t)?state.wheel.tags.delete(t):state.wheel.tags.add(t);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
-  if(b.dataset.wheelPack){const id=packIdFromDataset(b.dataset.wheelPack);state.wheel.packs.has(id)?state.wheel.packs.delete(id):state.wheel.packs.add(id);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
-  if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.result=null;save();renderWheel();return}
+  if(b.dataset.wheelAdd){const id=b.dataset.wheelAdd;const g=games.find(x=>x.id===id);const already=state.wheel.games.has(id);state.wheel.games.add(id);state.wheel.explicit=true;state.wheel.packs.add(g.pack);state.wheel.scope='selected';save();showToast(already?`${g.title} is already on the wheel`:`✓ ${g.title} added to wheel`);b.textContent='✓ Added';b.classList.add('added');setTimeout(()=>{if(document.body.contains(b)){b.textContent='✓ On Wheel';b.classList.add('added')}},1400);return}
+  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.explicit=true;state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=null;state.wheel.tags.clear();state.wheel.match='any';state.wheel.result=null;save();showToast(`✓ ${list.length} match${list.length===1?'':'es'} sent to wheel`);setView('wheel');return}
+  if(b.dataset.wheelTag){const t=b.dataset.wheelTag;state.wheel.tags.has(t)?state.wheel.tags.delete(t):state.wheel.tags.add(t);state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
+  if(b.dataset.wheelPack){const id=packIdFromDataset(b.dataset.wheelPack);state.wheel.packs.has(id)?state.wheel.packs.delete(id):state.wheel.packs.add(id);state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
+  if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel();return}
   if(b.dataset.wheelReset!==undefined){resetWheel();return}
   if(b.id==='spinBtn'||b.dataset.spinAgain!==undefined){spinWheel();return}
   if(b.dataset.removeWinner){state.wheel.games.size?state.wheel.games.delete(b.dataset.removeWinner):state.wheel.games=new Set(wheelPool().filter(g=>g.id!==b.dataset.removeWinner).map(g=>g.id));state.wheel.result=null;save();renderWheel();setTimeout(()=>spinWheel(),100);return}
@@ -320,7 +343,7 @@ document.addEventListener('click',e=>{
 
 document.addEventListener('input',e=>{
   if(e.target.id==='searchInput'){state.search=e.target.value;renderGames();const n=document.getElementById('searchInput');n.focus();n.setSelectionRange(n.value.length,n.value.length)}
-  if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.result=null;save();drawWheel()}
+  if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.explicit=state.wheel.games.size>0;state.wheel.result=null;save();drawWheel()}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='homePlayerSelect'){state.players=e.target.value?Number(e.target.value):null;if(state.players!==null)setView('finder')}
@@ -328,13 +351,16 @@ document.addEventListener('change',e=>{
   if(e.target.id==='packSelect'){state.pack=e.target.value;render()}
   if(e.target.id==='playerSelect'){state.players=e.target.value?Number(e.target.value):null;render()}
   if(e.target.id==='matchSelect'){state.match=e.target.value;render()}
-  if(e.target.id==='wheelPlayers'){state.wheel.players=e.target.value?Number(e.target.value):null;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
-  if(e.target.id==='wheelMatch'){state.wheel.match=e.target.value;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
-  if(e.target.id==='wheelScope'){state.wheel.scope=e.target.value;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
+  if(e.target.id==='wheelPlayers'){state.wheel.players=e.target.value?Number(e.target.value):null;state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel()}
+  if(e.target.id==='wheelMatch'){state.wheel.match=e.target.value;state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel()}
+  if(e.target.id==='wheelScope'){state.wheel.scope=e.target.value;state.wheel.games.clear();state.wheel.explicit=false;state.wheel.result=null;save();renderWheel()}
 });
 
 // Close dialogs on backdrop click
 [gameDialog,settingsDialog].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
+window.addEventListener('popstate',e=>{if(!e.state?.partyPicker)return;if(gameDialog.open)gameDialog.close();if(settingsDialog.open)settingsDialog.close();restoreHistorySnapshot(e.state);window.scrollTo({top:0,left:0,behavior:'auto'});render()});
+
+initHistory();
 render();
 refreshLauncherStatus().then(()=>renderNav());
