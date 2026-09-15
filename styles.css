@@ -909,35 +909,22 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .brand-product-name{display:none}
 }
 
-/* --- Natural-height game cards: remove the artificial empty middle --- */
+
+/* --- Standardise compact game-card heights for up to two tag rows --- */
 .compact-games-grid{
-  align-items:start !important;
+  align-items:stretch;
 }
 .compact-games-grid .game-card{
-  height:auto !important;
-  min-height:0 !important;
-  align-self:start !important;
+  height:100%;
 }
 .compact-games-grid .game-body{
-  flex:0 0 auto !important;
-  min-height:0 !important;
-  height:auto !important;
-  padding:9px 11px 10px !important;
-  gap:7px !important;
-}
-.compact-games-grid .game-title-wrap{
-  min-height:0 !important;
+  display:flex;
+  flex-direction:column;
 }
 .compact-games-grid .mini-row{
-  margin-top:0 !important;
-  margin-bottom:1px !important;
-  gap:5px !important;
+  min-height:58px; /* reserves room for a second wrapped tag row */
+  align-content:flex-start;
 }
 .compact-games-grid .card-actions{
-  margin-top:3px !important;
-  gap:7px !important;
-}
-.compact-games-grid .card-actions button{
-  min-height:36px !important;
-  padding:7px 9px !important;
+  margin-top:6px !important;
 }
