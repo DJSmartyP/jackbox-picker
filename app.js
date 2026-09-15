@@ -121,7 +121,7 @@ function renderHome(){
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
       </div></div>
       <div class="hero-side panel">
-        <div><h2>How many are playing?</h2><div class="player-row">${[2,3,4,5,6,7,8,9,10].map(n=>`<button class="player-chip" data-home-players="${n}">${n}</button>`).join('')}<button class="player-chip" data-home-players="16">16</button></div><div class="quick-note">We only show games where your exact group size fits the official player range.</div></div>
+        <div><h2>How many are playing?</h2><select id="homePlayerSelect" class="select stream-select"><option value="">Choose player count…</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}">${n} player${n===1?'':'s'}</option>`).join('')}</select><div class="quick-note">Choose your group size and we’ll show games where everyone can play.</div></div>
         <div class="stat-strip"><div class="stat"><b>${released}</b><span>released games & modes</span></div><div class="stat"><b>${packs.length}</b><span>collections</span></div><div class="stat"><b>4</b><span>interaction filters</span></div></div>
       </div>
     </section>
@@ -170,7 +170,7 @@ function renderFinder(){
   app.innerHTML=`<section><div class="section-head"><div><h2>Find a Game</h2><p>Build a shortlist around the people actually in the room.</p></div></div>
   <div class="finder-grid"><aside class="filters-panel panel">
     <h3>Your group</h3>
-    <div class="field"><label class="title">Players</label><div class="range-row">${[2,3,4,5,6,7,8,9,10].map(n=>`<button class="player-chip ${state.players===n?'active':''}" data-find-player="${n}">${n}</button>`).join('')}<button class="player-chip ${state.players===null?'active':''}" data-find-player="any">Any</button></div></div>
+    <div class="field"><label class="title">Players</label><select id="finderPlayerSelect" class="select stream-select" style="width:100%"><option value="" ${state.players===null?'selected':''}>Any group size</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} player${n===1?'':'s'}</option>`).join('')}</select></div>
     <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}">${tagMeta[t].label}</button>`).join('')}</div></div>
     <div class="field"><label class="title">When several are selected</label><select class="select" id="matchSelect" style="width:100%"><option value="any" ${state.match==='any'?'selected':''}>Match any category</option><option value="all" ${state.match==='all'?'selected':''}>Match every category</option></select></div>
     <div class="toggle-row"><div><b>Only packs I own</b><div class="wheel-small">Stored on this device</div></div><button class="toggle ${state.ownedOnly?'active':''}" data-toggle-owned></button></div>
@@ -234,14 +234,12 @@ document.addEventListener('click',e=>{
   if(b.dataset.go){setView(b.dataset.go);return}
   if(b.id==='settingsBtn'||b.id==='manageOwned'){showSettings();return}
   if(b.dataset.close!==undefined){b.closest('dialog').close();return}
-  if(b.dataset.homePlayers){state.players=Number(b.dataset.homePlayers);setView('finder');return}
   if(b.dataset.homeTag){state.tags=new Set([b.dataset.homeTag]);setView('games');return}
   if(b.dataset.filterTag){const t=b.dataset.filterTag;state.tags.has(t)?state.tags.delete(t):state.tags.add(t);render();return}
   if(b.dataset.filterOwned!==undefined){state.ownedOnly=!state.ownedOnly;render();return}
   if(b.dataset.filterFav!==undefined){state.favOnly=!state.favOnly;render();return}
   if(b.dataset.toggleOwned!==undefined){state.ownedOnly=!state.ownedOnly;render();return}
   if(b.dataset.toggleFav!==undefined){state.favOnly=!state.favOnly;render();return}
-  if(b.dataset.findPlayer){state.players=b.dataset.findPlayer==='any'?null:Number(b.dataset.findPlayer);render();return}
   if(b.dataset.clearFilters!==undefined){state.players=null;state.tags.clear();state.match='any';state.ownedOnly=false;state.favOnly=false;render();return}
   if(b.dataset.detail){showGame(b.dataset.detail);return}
   if(b.dataset.fav){state.favourites.has(b.dataset.fav)?state.favourites.delete(b.dataset.fav):state.favourites.add(b.dataset.fav);save();if(gameDialog.open)showGame(b.dataset.fav);else render();return}
@@ -263,6 +261,8 @@ document.addEventListener('input',e=>{
   if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.result=null;drawWheel()}
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='homePlayerSelect'){state.players=e.target.value?Number(e.target.value):null;if(state.players!==null)setView('finder')}
+  if(e.target.id==='finderPlayerSelect'){state.players=e.target.value?Number(e.target.value):null;render()}
   if(e.target.id==='packSelect'){state.pack=e.target.value;render()}
   if(e.target.id==='playerSelect'){state.players=e.target.value?Number(e.target.value):null;render()}
   if(e.target.id==='matchSelect'){state.match=e.target.value;render()}
