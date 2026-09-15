@@ -101,8 +101,11 @@ function setView(view){
 function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function playerLabel(g){return `${g.min}–${g.max} players`}
 function showToast(message){const t=document.getElementById('toast');if(!t)return;t.textContent=message;t.classList.add('show');clearTimeout(showToast._timer);showToast._timer=setTimeout(()=>t.classList.remove('show'),1800)}
+function wheelSelectionCount(){return state.wheel.games.size}
+function updateWheelNav(){const count=wheelSelectionCount();document.querySelectorAll('[data-view="wheel"]').forEach(b=>{const mobile=!!b.closest('.mobile-nav');b.innerHTML=`<img class="wheel-badge-icon" src="assets/ui/wheel-badge.png" alt=""><span>${mobile?'Wheel':'Wheel'}</span><b class="nav-wheel-count ${count?'' :'empty'}">${count}</b>`})}
 
 function renderNav(){
+  updateWheelNav();
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
 }
 function render(){
@@ -138,50 +141,54 @@ function renderHome(){
 }
 function categoryCopy(k){return {drawing:'Doodles, visual creation and art-based play.',quiz:'Trivia, facts, estimates and knowledge challenges.',speaking:'Discussion, bluffing, pitching and performance.',typing:'Written jokes, answers, messages and wordplay.'}[k]}
 
-function renderGames(){
-  const list=filteredGames();
-  app.innerHTML=`<section><div class="section-head"><div><h2>All games</h2><p>Browse by pack, then narrow by game, play style or exact group size.</p></div></div>
-    ${filtersHTML()}
-    ${list.length?groupedGameSections(list):`<div class="empty">No games match those filters.</div>`}
-  </section>`;
-}
 function groupedGameSections(list){
   return packs.map(p=>{
     const items=list.filter(g=>String(g.pack)===String(p.id));
     if(!items.length) return '';
+    const c=colourForPack(p.id);
     const unit=p.kind==='standalone'?'modes':'games';
     return `<section class="game-pack-group">
-      <div class="game-pack-heading">
-        <div><span class="game-pack-kicker">${packBadge(p)}</span><h3>${esc(p.name)}</h3></div>
-        <span class="game-pack-count">${items.length} ${unit}${p.status==='upcoming'?' · Upcoming':''}</span>
+      <div class="game-pack-heading" style="--pc1:${c[0]};--pc2:${c[1]};--pack-art:url('${packArtUrl(p.id)}')">
+        <div class="game-pack-heading__backplate"></div>
+        <div class="game-pack-heading__copy"><span class="game-pack-kicker">${packBadge(p)}</span><h3>${esc(p.name)}</h3></div>
+        <div class="game-pack-count">${items.length} ${unit}${p.status==='upcoming'?' · Upcoming':''}</div>
       </div>
       <div class="games-grid compact-games-grid">${items.map(gameCard).join('')}</div>
     </section>`;
   }).join('');
 }
+
+function renderGames(){
+  const list=filteredGames();
+  app.innerHTML=`<section><div class="section-head"><div><h2>All games</h2><p>Browse by pack, then narrow by game, interaction or exact group size.</p></div></div>
+    ${filtersHTML()}
+    ${list.length?groupedGameSections(list):`<div class="empty">No games match those filters.</div>`}
+  </section>`;
+}
 function filtersHTML(){return `
-  <div class="toolbar"><div class="searchbox"><input id="searchInput" value="${esc(state.search)}" placeholder="Search games, packs or styles…"></div>
-  <select class="select" id="packSelect"><option value="all">All collections</option>${packs.map(p=>`<option value="${p.id}" ${String(state.pack)===String(p.id)?'selected':''}>${packBadge(p)}${p.status==='upcoming'?' · Upcoming':''}</option>`).join('')}</select>
-  <select class="select" id="playerSelect"><option value="">Any players</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
-  <div class="filter-bar"><span class="filter-label">Interaction</span>${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}">${tagMeta[t].label}</button>`).join('')}
-    <button class="tag-chip ${state.ownedOnly?'active':''}" data-filter-owned>Owned</button><button class="tag-chip ${state.favOnly?'active':''}" data-filter-fav>★ Favourites</button>
-    <select class="select" id="matchSelect" ${state.tags.size<2?'disabled':''}><option value="any" ${state.match==='any'?'selected':''}>Match any</option><option value="all" ${state.match==='all'?'selected':''}>Match all</option></select><span class="result-count">${filteredGames().length} games</span></div>`}
+  <div class="filters-shell">
+    <div class="toolbar toolbar-main"><div class="searchbox"><input id="searchInput" value="${esc(state.search)}" placeholder="Search games, packs or styles…"></div>
+      <select class="select" id="packSelect"><option value="all">All collections</option>${packs.map(p=>`<option value="${p.id}" ${String(state.pack)===String(p.id)?'selected':''}>${packBadge(p)}${p.status==='upcoming'?' · Upcoming':''}</option>`).join('')}</select>
+      <select class="select" id="playerSelect"><option value="">Any players</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
+    <div class="filter-bar filter-bar-clean"><div class="filter-chip-row"><span class="filter-label">Interaction</span>${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}" data-tag="${t}">${tagMeta[t].label}</button>`).join('')}
+      <button class="tag-chip utility-chip ${state.ownedOnly?'active':''}" data-filter-owned>Owned</button><button class="tag-chip utility-chip ${state.favOnly?'active':''}" data-filter-fav>★ Favourites</button></div>
+      <div class="filter-meta-row"><select class="select" id="matchSelect" ${state.tags.size<2?'disabled':''}><option value="any" ${state.match==='any'?'selected':''}>Match any</option><option value="all" ${state.match==='all'?'selected':''}>Match all</option></select><span class="result-count">${filteredGames().length} games</span></div></div>
+  </div>`}
 function gameCard(g){
   const p=packInfo(g.pack), c=colourForPack(g.pack);
   return `<article class="game-card" style="--pack-color:linear-gradient(90deg,${c[0]},${c[1]})">
     <div class="game-art" ${gameArtStyle(g)}><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
     <div class="game-body">
-      <div class="game-meta"><h3>${esc(g.title)}</h3><button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div>
-      <p>${esc(g.desc)}</p>
-      <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
-      <div class="card-actions"><button data-detail="${g.id}">Details</button><button class="${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}" ${g.upcoming?'disabled title="Not released yet"':''}>${state.wheel.games.has(g.id)?'✓ On Wheel':'+ Wheel'}</button></div>
+      <div class="game-meta"><div class="game-title-wrap"><h3>${esc(g.title)}</h3></div><button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div>
+      <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag" data-tag="${t}">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
+      <div class="card-actions"><button class="card-secondary" data-detail="${g.id}">Details</button><button class="card-primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}" ${g.upcoming?'disabled title="Not released yet"':''}>${state.wheel.games.has(g.id)?'✓ On Wheel':'＋ Wheel'}</button></div>
     </div></article>`;
 }
 
 function renderPacks(){
-  app.innerHTML=`<section><div class="section-head"><div><h2>Packs & standalone titles</h2><p>Official pack artwork with an original big-screen companion UI.</p></div></div><div class="packs-grid">${packs.map(packCard).join('')}</div></section>`;
+  app.innerHTML=`<section><div class="section-head"><div><h2>Packs & standalone titles</h2><p>Official pack artwork with a cleaner stream-first box selection layout.</p></div></div><div class="packs-grid">${packs.map(packCard).join('')}</div></section>`;
 }
-function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><h3>${p.name}</h3><p>${p.year} · ${count} ${unit} ${p.status==='upcoming'?'· Upcoming':''}</p><div class="pack-controls"><span>${items.map(g=>`${g.min}–${g.max}`).slice(0,2).join(' · ')}${count>2?' …':''}</span><button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
+function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><div class="pack-card-topline">${p.year} · ${count} ${unit}${p.status==='upcoming'?' · Upcoming':''}</div><h3>${p.name}</h3><div class="pack-controls pack-controls-clean"><button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
 
 function renderFinder(){
   const list=filteredGames();
@@ -225,7 +232,7 @@ function renderWheel(){
   requestAnimationFrame(drawWheel);
 }
 function wheelBaseForChecklist(){let pool=games.filter(g=>!g.upcoming&&gameFitsPlayers(g,state.wheel.players)&&tagMatch(g,state.wheel.tags,state.wheel.match));if(state.wheel.scope==='selected')pool=pool.filter(g=>state.wheel.packs.has(g.pack));if(state.wheel.scope==='owned')pool=pool.filter(g=>state.owned.has(g.pack));if(state.wheel.scope==='favourites')pool=pool.filter(g=>state.favourites.has(g.id));return pool}
-function winnerHTML(g){return `<div class="winner">${esc(g.title)}</div><div class="winner-sub">${packBadge(packInfo(g.pack))} · ${playerLabel(g)}</div><div class="range-row" style="justify-content:center;margin-top:12px"><button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div>`}
+function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-art" ${gameArtStyle(g)}><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions"><button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
 function drawWheel(angle=state.wheel.angle){
   const canvas=document.getElementById('wheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),pool=wheelPool(),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=H*.46;ctx.clearRect(0,0,W,H);
   if(!pool.length){ctx.fillStyle='#1c2741';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeb8d0';ctx.font='700 34px system-ui';ctx.textAlign='center';ctx.fillText('No games match',cx,cy);return}
