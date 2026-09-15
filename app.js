@@ -1,0 +1,231 @@
+const { packs, games } = window.PARTY_CATALOGUE;
+const app = document.getElementById('app');
+const gameDialog = document.getElementById('gameDialog');
+const settingsDialog = document.getElementById('settingsDialog');
+
+const packColours = [
+  ['#ff5aa5','#7b61ff'],['#20d7c9','#1e88ff'],['#ff8558','#ffca5a'],['#b15cff','#ff6ba8'],
+  ['#5ae0ff','#5e7dff'],['#a4f07b','#38c5a0'],['#ff6b7a','#ffb04c'],['#59d7ff','#9e76ff'],
+  ['#f0d467','#f779a8'],['#62e2aa','#4aa5ff'],['#ff7fb2','#7f77ff'],['#66e6ff','#ffd05b']
+];
+const tagMeta = {
+  drawing:{label:'Drawing',icon:'assets/categories/drawing.png'},
+  quiz:{label:'Quiz',icon:'assets/categories/quiz.png'},
+  speaking:{label:'Speaking',icon:'assets/categories/speaking.png'},
+  typing:{label:'Typing',icon:'assets/categories/typing.png'}
+};
+const state = {
+  view:'home', search:'', pack:'all', players:null, tags:new Set(), match:'any', ownedOnly:false, favOnly:false,
+  owned:new Set(JSON.parse(localStorage.getItem('partyPickerOwned') || '[]')),
+  favourites:new Set(JSON.parse(localStorage.getItem('partyPickerFavourites') || '[]')),
+  wheel:{players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null}
+};
+
+function save(){
+  localStorage.setItem('partyPickerOwned', JSON.stringify([...state.owned]));
+  localStorage.setItem('partyPickerFavourites', JSON.stringify([...state.favourites]));
+}
+function packInfo(id){return packs.find(p=>String(p.id)===String(id))}
+function packIdFromDataset(raw){return /^\d+$/.test(String(raw))?Number(raw):raw}
+function colourForPack(id){if(String(id)==='survey-scramble')return ['#ff4f8b','#ff9f43'];const n=Number(id);return packColours[(n-1)%packColours.length]}
+function packBadge(pack){return pack.kind==='standalone'?(pack.shortName||pack.name):`Pack ${pack.id}`}
+function packChipLabel(pack){return pack.kind==='standalone'?'Survey':String(pack.id)}
+function ownedSort(a,b){const pa=packInfo(a),pb=packInfo(b);if(pa?.kind==='standalone'&&pb?.kind!=='standalone')return 1;if(pb?.kind==='standalone'&&pa?.kind!=='standalone')return -1;return Number(a)-Number(b)}
+function gameFitsPlayers(g,n){return !n || (g.min<=n && g.max>=n)}
+function tagMatch(g,tags,mode='any'){
+  if(!tags.size) return true;
+  return mode==='all' ? [...tags].every(t=>g.tags.includes(t)) : [...tags].some(t=>g.tags.includes(t));
+}
+function filteredGames(overrides={}){
+  const f={search:state.search,pack:state.pack,players:state.players,tags:state.tags,match:state.match,ownedOnly:state.ownedOnly,favOnly:state.favOnly,...overrides};
+  const q=(f.search||'').trim().toLowerCase();
+  return games.filter(g=>{
+    const p=packInfo(g.pack);
+    if(q && !`${g.title} ${p.name} pack ${g.pack} ${g.style.join(' ')}`.toLowerCase().includes(q)) return false;
+    if(f.pack!=='all' && String(f.pack)!==String(g.pack)) return false;
+    if(!gameFitsPlayers(g,f.players)) return false;
+    if(!tagMatch(g,f.tags,f.match)) return false;
+    if(f.ownedOnly && !state.owned.has(g.pack)) return false;
+    if(f.favOnly && !state.favourites.has(g.id)) return false;
+    return true;
+  });
+}
+function setView(view){state.view=view;window.scrollTo({top:0,behavior:'smooth'});render()}
+function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function playerLabel(g){return `${g.min}–${g.max} players`}
+
+function renderNav(){
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
+}
+function render(){
+  if(state.view==='home') renderHome();
+  else if(state.view==='games') renderGames();
+  else if(state.view==='packs') renderPacks();
+  else if(state.view==='finder') renderFinder();
+  else if(state.view==='wheel') renderWheel();
+  renderNav();
+}
+
+function renderHome(){
+  const released=games.filter(g=>!g.upcoming).length;
+  app.innerHTML=`
+    <section class="hero">
+      <div class="hero-card"><div class="hero-copy">
+        <div class="eyebrow">Unofficial game-night companion</div>
+        <h1>Stop scrolling.<br><span>Start playing.</span></h1>
+        <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
+        <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
+      </div></div>
+      <div class="hero-side panel">
+        <div><h2>How many are playing?</h2><div class="player-row">${[2,3,4,5,6,7,8,9,10].map(n=>`<button class="player-chip" data-home-players="${n}">${n}</button>`).join('')}<button class="player-chip" data-home-players="16">16</button></div><div class="quick-note">We only show games where your exact group size fits the official player range.</div></div>
+        <div class="stat-strip"><div class="stat"><b>${released}</b><span>released games & modes</span></div><div class="stat"><b>${packs.length}</b><span>collections</span></div><div class="stat"><b>4</b><span>interaction filters</span></div></div>
+      </div>
+    </section>
+    <section class="section"><div class="section-head"><div><h2>Pick your vibe</h2><p>Games can belong to more than one interaction category.</p></div><button class="link-btn" data-go="games">Browse all games →</button></div>
+      <div class="category-grid">${Object.entries(tagMeta).map(([key,m])=>`<button class="category-card" data-home-tag="${key}"><img src="${m.icon}" alt=""><div><strong>${m.label}</strong></div><small>${categoryCopy(key)}</small></button>`).join('')}</div>
+    </section>
+    <section class="section"><div class="section-head"><div><h2>Your library</h2><p>Mark packs and standalone titles you own and the finder/wheel can limit itself to your collection.</p></div><button class="link-btn" id="manageOwned">Manage collection →</button></div>
+      ${state.owned.size?`<div class="filter-bar">${[...state.owned].sort(ownedSort).map(id=>`<span class="pack-chip active">${packBadge(packInfo(id))}</span>`).join('')}</div>`:`<div class="empty">No packs marked as owned yet. Your choices stay on this device.</div>`}
+    </section>`;
+}
+function categoryCopy(k){return {drawing:'Doodles, visual creation and art-based play.',quiz:'Trivia, facts, estimates and knowledge challenges.',speaking:'Discussion, bluffing, pitching and performance.',typing:'Written jokes, answers, messages and wordplay.'}[k]}
+
+function renderGames(){
+  const list=filteredGames();
+  app.innerHTML=`<section><div class="section-head"><div><h2>All games</h2><p>Search by game, pack, play style or exact group size.</p></div></div>
+    ${filtersHTML()}
+    <div class="games-grid">${list.length?list.map(gameCard).join(''):`<div class="empty" style="grid-column:1/-1">No games match those filters.</div>`}</div>
+  </section>`;
+}
+function filtersHTML(){return `
+  <div class="toolbar"><div class="searchbox"><input id="searchInput" value="${esc(state.search)}" placeholder="Search games, packs or styles…"></div>
+  <select class="select" id="packSelect"><option value="all">All collections</option>${packs.map(p=>`<option value="${p.id}" ${String(state.pack)===String(p.id)?'selected':''}>${packBadge(p)}${p.status==='upcoming'?' · Upcoming':''}</option>`).join('')}</select>
+  <select class="select" id="playerSelect"><option value="">Any players</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
+  <div class="filter-bar"><span class="filter-label">Interaction</span>${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}">${tagMeta[t].label}</button>`).join('')}
+    <button class="tag-chip ${state.ownedOnly?'active':''}" data-filter-owned>Owned</button><button class="tag-chip ${state.favOnly?'active':''}" data-filter-fav>★ Favourites</button>
+    <select class="select" id="matchSelect" ${state.tags.size<2?'disabled':''}><option value="any" ${state.match==='any'?'selected':''}>Match any</option><option value="all" ${state.match==='all'?'selected':''}>Match all</option></select><span class="result-count">${filteredGames().length} games</span></div>`}
+function gameCard(g){
+  const p=packInfo(g.pack), c=colourForPack(g.pack);
+  return `<article class="game-card" style="--pack-color:linear-gradient(90deg,${c[0]},${c[1]})"><div class="game-top"></div><div class="game-body">
+    <div class="game-meta"><span class="pack-badge">${packBadge(p)}</span><div>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}<button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div></div>
+    <h3>${esc(g.title)}</h3><p>${esc(g.desc)}</p>
+    <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
+    <div class="card-actions"><button data-detail="${g.id}">Details</button><button data-wheel-add="${g.id}" ${g.upcoming?'disabled title="Not released yet"':''}>+ Wheel</button></div>
+  </div></article>`;
+}
+
+function renderPacks(){
+  app.innerHTML=`<section><div class="section-head"><div><h2>Packs & standalone titles</h2><p>Numbered Party Packs plus Survey Scramble, using original companion artwork only.</p></div></div><div class="packs-grid">${packs.map(packCard).join('')}</div></section>`;
+}
+function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art"><div class="pack-num">${art}</div></div><div class="pack-card-body"><h3>${p.name}</h3><p>${p.year} · ${count} ${unit} ${p.status==='upcoming'?'· Upcoming':''}</p><div class="pack-controls"><span>${items.map(g=>`${g.min}–${g.max}`).slice(0,2).join(' · ')}${count>2?' …':''}</span><button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
+
+function renderFinder(){
+  const list=filteredGames();
+  app.innerHTML=`<section><div class="section-head"><div><h2>Find a Game</h2><p>Build a shortlist around the people actually in the room.</p></div></div>
+  <div class="finder-grid"><aside class="filters-panel panel">
+    <h3>Your group</h3>
+    <div class="field"><label class="title">Players</label><div class="range-row">${[2,3,4,5,6,7,8,9,10].map(n=>`<button class="player-chip ${state.players===n?'active':''}" data-find-player="${n}">${n}</button>`).join('')}<button class="player-chip ${state.players===null?'active':''}" data-find-player="any">Any</button></div></div>
+    <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.tags.has(t)?'active':''}" data-filter-tag="${t}">${tagMeta[t].label}</button>`).join('')}</div></div>
+    <div class="field"><label class="title">When several are selected</label><select class="select" id="matchSelect" style="width:100%"><option value="any" ${state.match==='any'?'selected':''}>Match any category</option><option value="all" ${state.match==='all'?'selected':''}>Match every category</option></select></div>
+    <div class="toggle-row"><div><b>Only packs I own</b><div class="wheel-small">Stored on this device</div></div><button class="toggle ${state.ownedOnly?'active':''}" data-toggle-owned></button></div>
+    <div class="toggle-row"><div><b>Only favourites</b><div class="wheel-small">Your saved game shortlist</div></div><button class="toggle ${state.favOnly?'active':''}" data-toggle-fav></button></div>
+    <button class="ghost" style="width:100%;margin-top:14px" data-clear-filters>Clear filters</button>
+  </aside><div><div class="section-head"><div><h2 style="font-size:26px">${list.length} matches</h2><p>${finderSummary()}</p></div>${list.length?'<button class="primary" data-send-wheel>Send matches to wheel</button>':''}</div><div class="games-grid">${list.length?list.map(gameCard).join(''):'<div class="empty" style="grid-column:1/-1">Try widening the player count or interaction filters.</div>'}</div></div></div></section>`;
+}
+function finderSummary(){let bits=[];if(state.players)bits.push(`${state.players} players`);if(state.tags.size)bits.push([...state.tags].map(t=>tagMeta[t].label).join(state.match==='all'?' + ':' or '));if(state.ownedOnly)bits.push('owned packs');if(state.favOnly)bits.push('favourites');return bits.length?`Matching ${bits.join(' · ')}`:'No filters applied yet.'}
+
+function wheelPool(){
+  let pool=games.filter(g=>!g.upcoming && gameFitsPlayers(g,state.wheel.players) && tagMatch(g,state.wheel.tags,state.wheel.match));
+  if(state.wheel.scope==='owned') pool=pool.filter(g=>state.owned.has(g.pack));
+  else if(state.wheel.scope==='favourites') pool=pool.filter(g=>state.favourites.has(g.id));
+  else if(state.wheel.scope==='selected') pool=pool.filter(g=>state.wheel.packs.has(g.pack));
+  if(state.wheel.games.size) pool=pool.filter(g=>state.wheel.games.has(g.id));
+  return pool;
+}
+function renderWheel(){
+  const pool=wheelPool();
+  app.innerHTML=`<section><div class="section-head"><div><h2>Random Game Wheel</h2><p>Build the pool, spin, remove a result if you want, and spin again.</p></div></div>
+    <div class="wheel-layout"><div class="wheel-stage panel"><div class="wheel-wrap"><canvas id="wheelCanvas" width="900" height="900" aria-label="Random game wheel"></canvas></div>
+      <button class="primary spin-btn" id="spinBtn" ${pool.length<2?'disabled':''}>${pool.length<2?'Add at least 2 games':'SPIN'}</button>
+      <div class="wheel-result" id="wheelResult">${state.wheel.result?winnerHTML(state.wheel.result):`<div class="winner-sub">${pool.length} eligible games on the wheel</div>`}</div>
+    </div><aside class="wheel-config panel">
+      <h3>Build your wheel</h3>
+      <div class="field"><label class="title">Players</label><select id="wheelPlayers" class="select" style="width:100%"><option value="">Any group size</option>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,50,100].map(n=>`<option value="${n}" ${state.wheel.players===n?'selected':''}>${n} players</option>`).join('')}</select></div>
+      <div class="field"><label class="title">Interaction</label><div class="range-row">${Object.keys(tagMeta).map(t=>`<button class="tag-chip ${state.wheel.tags.has(t)?'active':''}" data-wheel-tag="${t}">${tagMeta[t].label}</button>`).join('')}</div></div>
+      <div class="field"><label class="title">Category matching</label><select class="select" id="wheelMatch" style="width:100%"><option value="any" ${state.wheel.match==='any'?'selected':''}>Match any selected category</option><option value="all" ${state.wheel.match==='all'?'selected':''}>Match all selected categories</option></select></div>
+      <div class="field"><label class="title">Source</label><select class="select" id="wheelScope" style="width:100%"><option value="selected" ${state.wheel.scope==='selected'?'selected':''}>Selected packs</option><option value="owned" ${state.wheel.scope==='owned'?'selected':''}>Packs I own</option><option value="favourites" ${state.wheel.scope==='favourites'?'selected':''}>Favourites only</option></select></div>
+      ${state.wheel.scope==='selected'?`<div class="field"><label class="title">Packs</label><div class="range-row">${packs.filter(p=>p.status==='released').map(p=>`<button class="pack-chip ${state.wheel.packs.has(p.id)?'active':''}" data-wheel-pack="${p.id}">${packChipLabel(p)}</button>`).join('')}</div></div>`:''}
+      <div class="field"><label class="title">Exact game selection <span class="wheel-small">(optional)</span></label><div class="wheel-small" style="margin-bottom:8px">Leave every game unticked to use the whole filtered pool.</div><div class="wheel-list">${wheelBaseForChecklist().map(g=>`<label class="check-row"><input type="checkbox" data-wheel-game="${g.id}" ${state.wheel.games.has(g.id)?'checked':''}><span>${esc(g.title)}</span></label>`).join('')}</div></div>
+      <div class="range-row"><button class="ghost" data-wheel-clear-games>Clear game picks</button><button class="ghost" data-wheel-reset>Reset wheel</button></div>
+    </aside></div></section>`;
+  requestAnimationFrame(drawWheel);
+}
+function wheelBaseForChecklist(){let pool=games.filter(g=>!g.upcoming&&gameFitsPlayers(g,state.wheel.players)&&tagMatch(g,state.wheel.tags,state.wheel.match));if(state.wheel.scope==='selected')pool=pool.filter(g=>state.wheel.packs.has(g.pack));if(state.wheel.scope==='owned')pool=pool.filter(g=>state.owned.has(g.pack));if(state.wheel.scope==='favourites')pool=pool.filter(g=>state.favourites.has(g.id));return pool}
+function winnerHTML(g){return `<div class="winner">${esc(g.title)}</div><div class="winner-sub">${packBadge(packInfo(g.pack))} · ${playerLabel(g)}</div><div class="range-row" style="justify-content:center;margin-top:12px"><button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div>`}
+function drawWheel(angle=state.wheel.angle){
+  const canvas=document.getElementById('wheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),pool=wheelPool(),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=H*.46;ctx.clearRect(0,0,W,H);
+  if(!pool.length){ctx.fillStyle='#1c2741';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeb8d0';ctx.font='700 34px system-ui';ctx.textAlign='center';ctx.fillText('No games match',cx,cy);return}
+  const step=Math.PI*2/pool.length;
+  pool.forEach((g,i)=>{const start=angle+i*step-Math.PI/2,end=start+step,c=colourForPack(g.pack);ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.fillStyle=i%2?c[0]:c[1];ctx.globalAlpha=.92;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='rgba(9,13,26,.55)';ctx.lineWidth=4;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(start+step/2);ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font=`900 ${pool.length>28?16:pool.length>18?20:pool.length>10?24:28}px system-ui`;const label=g.title.length>24?g.title.slice(0,23)+'…':g.title;ctx.fillText(label,r-24,8);ctx.restore();});
+  ctx.beginPath();ctx.arc(cx,cy,r*.15,0,Math.PI*2);ctx.fillStyle='#0b1020';ctx.fill();ctx.lineWidth=10;ctx.strokeStyle='rgba(255,255,255,.14)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='1000 32px system-ui';ctx.textAlign='center';ctx.fillText('GO',cx,cy+11);
+}
+function spinWheel(){
+  const pool=wheelPool();if(pool.length<2||state.wheel.spinning)return;state.wheel.spinning=true;state.wheel.result=null;const start=performance.now(),duration=4600,startAngle=state.wheel.angle,turns=(6+Math.random()*4)*Math.PI*2,target=startAngle+turns+Math.random()*Math.PI*2;
+  const ease=t=>1-Math.pow(1-t,4);function frame(now){const t=Math.min(1,(now-start)/duration);state.wheel.angle=startAngle+(target-startAngle)*ease(t);drawWheel(state.wheel.angle);if(t<1)requestAnimationFrame(frame);else{state.wheel.spinning=false;const step=Math.PI*2/pool.length;let pointer=(-state.wheel.angle)%(Math.PI*2);if(pointer<0)pointer+=Math.PI*2;const idx=Math.floor(pointer/step)%pool.length;state.wheel.result=pool[idx];document.getElementById('wheelResult').innerHTML=winnerHTML(pool[idx]);}}
+  requestAnimationFrame(frame);
+}
+
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions"><button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary" data-wheel-add="${g.id}">Add to wheel</button>`:''}</div></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">My Jackbox collection</h2></div><button class="close-btn" data-close>×</button></div><p class="detail-desc">These choices are saved only in this browser. They can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></div>`;if(!settingsDialog.open) settingsDialog.showModal()}
+
+function resetWheel(){state.wheel={players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null};renderWheel()}
+
+// Global click handling
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button,[data-pack-open]');if(!b)return;
+  if(b.dataset.view){setView(b.dataset.view);return}
+  if(b.dataset.go){setView(b.dataset.go);return}
+  if(b.id==='settingsBtn'||b.id==='manageOwned'){showSettings();return}
+  if(b.dataset.close!==undefined){b.closest('dialog').close();return}
+  if(b.dataset.homePlayers){state.players=Number(b.dataset.homePlayers);state.view='finder';render();return}
+  if(b.dataset.homeTag){state.tags=new Set([b.dataset.homeTag]);state.view='games';render();return}
+  if(b.dataset.filterTag){const t=b.dataset.filterTag;state.tags.has(t)?state.tags.delete(t):state.tags.add(t);render();return}
+  if(b.dataset.filterOwned!==undefined){state.ownedOnly=!state.ownedOnly;render();return}
+  if(b.dataset.filterFav!==undefined){state.favOnly=!state.favOnly;render();return}
+  if(b.dataset.toggleOwned!==undefined){state.ownedOnly=!state.ownedOnly;render();return}
+  if(b.dataset.toggleFav!==undefined){state.favOnly=!state.favOnly;render();return}
+  if(b.dataset.findPlayer){state.players=b.dataset.findPlayer==='any'?null:Number(b.dataset.findPlayer);render();return}
+  if(b.dataset.clearFilters!==undefined){state.players=null;state.tags.clear();state.match='any';state.ownedOnly=false;state.favOnly=false;render();return}
+  if(b.dataset.detail){showGame(b.dataset.detail);return}
+  if(b.dataset.fav){state.favourites.has(b.dataset.fav)?state.favourites.delete(b.dataset.fav):state.favourites.add(b.dataset.fav);save();if(gameDialog.open)showGame(b.dataset.fav);else render();return}
+  if(b.dataset.owned){const id=packIdFromDataset(b.dataset.owned);state.owned.has(id)?state.owned.delete(id):state.owned.add(id);save();if(settingsDialog.open)showSettings();else render();return}
+  if(b.dataset.clearOwned!==undefined){state.owned.clear();save();showSettings();return}
+  if(b.dataset.packOpen){state.pack=String(b.dataset.packOpen);state.view='games';render();return}
+  if(b.dataset.wheelAdd){state.wheel.games.add(b.dataset.wheelAdd);const g=games.find(x=>x.id===b.dataset.wheelAdd);state.wheel.packs.add(g.pack);state.wheel.scope='selected';state.view='wheel';if(gameDialog.open)gameDialog.close();render();return}
+  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=state.players;state.wheel.tags=new Set(state.tags);state.wheel.match=state.match;state.view='wheel';render();return}
+  if(b.dataset.wheelTag){const t=b.dataset.wheelTag;state.wheel.tags.has(t)?state.wheel.tags.delete(t):state.wheel.tags.add(t);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
+  if(b.dataset.wheelPack){const id=packIdFromDataset(b.dataset.wheelPack);state.wheel.packs.has(id)?state.wheel.packs.delete(id):state.wheel.packs.add(id);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
+  if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
+  if(b.dataset.wheelReset!==undefined){resetWheel();return}
+  if(b.id==='spinBtn'||b.dataset.spinAgain!==undefined){spinWheel();return}
+  if(b.dataset.removeWinner){state.wheel.games.size?state.wheel.games.delete(b.dataset.removeWinner):state.wheel.games=new Set(wheelPool().filter(g=>g.id!==b.dataset.removeWinner).map(g=>g.id));state.wheel.result=null;renderWheel();setTimeout(()=>spinWheel(),100);return}
+});
+
+document.addEventListener('input',e=>{
+  if(e.target.id==='searchInput'){state.search=e.target.value;renderGames();const n=document.getElementById('searchInput');n.focus();n.setSelectionRange(n.value.length,n.value.length)}
+  if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.result=null;drawWheel()}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='packSelect'){state.pack=e.target.value;render()}
+  if(e.target.id==='playerSelect'){state.players=e.target.value?Number(e.target.value):null;render()}
+  if(e.target.id==='matchSelect'){state.match=e.target.value;render()}
+  if(e.target.id==='wheelPlayers'){state.wheel.players=e.target.value?Number(e.target.value):null;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
+  if(e.target.id==='wheelMatch'){state.wheel.match=e.target.value;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
+  if(e.target.id==='wheelScope'){state.wheel.scope=e.target.value;state.wheel.games.clear();state.wheel.result=null;renderWheel()}
+});
+
+// Close dialogs on backdrop click
+[gameDialog,settingsDialog].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+
+render();
