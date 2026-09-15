@@ -442,7 +442,7 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
 
 /* Home screen: fit comfortably inside a 1920x1080 stream viewport. */
 @media(min-width:1200px) and (min-height:800px) and (max-height:1150px){
-  .app-shell{padding-top:26px;padding-bottom:28px}
+  .app-shell{padding-top:26px;padding-bottom:40px}
   .hero{grid-template-columns:1.32fr .88fr;gap:18px}
   .hero-card,.hero-side{min-height:405px;max-height:405px}
   .hero-card{padding:42px 48px}
@@ -456,7 +456,7 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .stat-strip{margin-top:auto;gap:9px}
   .stat{padding:12px}
   .stat b{font-size:27px}.stat span{font-size:12px}
-  .section{margin-top:23px}
+  .section{margin-top:18px}
   .section-head{margin-bottom:11px}
   .section-head h2{font-size:36px}
   .section-head p{font-size:16px;margin-top:4px}
