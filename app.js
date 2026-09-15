@@ -256,7 +256,7 @@ function filtersHTML(){return `
 function gameCard(g){
   const p=packInfo(g.pack), c=colourForPack(g.pack);
   return `<article class="game-card" style="--pack-color:linear-gradient(90deg,${c[0]},${c[1]})">
-    <div class="game-art" ${gameArtStyle(g)}><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
+    <div class="game-art game-art-sideways"><img class="game-art-sideways-img" src="${esc(gameArtUrl(g))}" alt="" loading="lazy"><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
     <div class="game-body">
       <div class="game-meta"><div class="game-title-wrap"><h3>${esc(g.title)}</h3></div><button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div>
       <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag" data-tag="${t}">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
