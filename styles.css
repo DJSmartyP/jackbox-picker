@@ -65,3 +65,5 @@ footer{color:var(--muted)}
 /* Large player-count dropdowns for stream use */
 .stream-select{width:100%;min-height:64px;font-size:22px;font-weight:900;padding:16px 18px;border-radius:18px;background:#121a2b;color:var(--text);border:1px solid var(--line)}
 .stream-select:focus{outline:2px solid rgba(73,229,255,.55);outline-offset:2px}
+
+.toast{position:fixed;left:50%;bottom:34px;z-index:100;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:#10182a;border:1px solid rgba(255,255,255,.2);box-shadow:0 18px 55px rgba(0,0,0,.5);border-radius:18px;padding:16px 24px;color:#fff;font-size:18px;font-weight:900;transition:.2s opacity,.2s transform;max-width:min(720px,calc(100vw - 40px));text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.card-actions button.added,.hero-actions button.added{background:rgba(140,245,138,.16);border-color:rgba(140,245,138,.45);color:#c9ffc7}

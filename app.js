@@ -25,7 +25,9 @@ const packArtwork = {
   'survey-scramble':'assets/hero-pattern.png'
 };
 function packArtUrl(id){return packArtwork[id] || 'assets/hero-pattern.png'}
+function gameArtUrl(g){return g.art || packArtUrl(g.pack)}
 function artStyle(id){return `style="background-image:linear-gradient(180deg,rgba(6,10,20,.18),rgba(6,10,20,.78)),url('${packArtUrl(id)}')"`}
+function gameArtStyle(g){return `style="background-image:linear-gradient(180deg,rgba(6,10,20,.12),rgba(6,10,20,.78)),url('${gameArtUrl(g)}')"`}
 
 const tagMeta = {
   drawing:{label:'Drawing',icon:'assets/categories/drawing.png'},
@@ -37,12 +39,13 @@ const state = {
   view:'home', search:'', pack:'all', players:null, tags:new Set(), match:'any', ownedOnly:false, favOnly:false,
   owned:new Set(JSON.parse(localStorage.getItem('partyPickerOwned') || '[]')),
   favourites:new Set(JSON.parse(localStorage.getItem('partyPickerFavourites') || '[]')),
-  wheel:{players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null}
+  wheel:{players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(JSON.parse(localStorage.getItem('partyPickerWheelGames') || '[]')),match:'any',angle:0,spinning:false,result:null}
 };
 
 function save(){
   localStorage.setItem('partyPickerOwned', JSON.stringify([...state.owned]));
   localStorage.setItem('partyPickerFavourites', JSON.stringify([...state.favourites]));
+  localStorage.setItem('partyPickerWheelGames', JSON.stringify([...state.wheel.games]));
 }
 function packInfo(id){return packs.find(p=>String(p.id)===String(id))}
 function packIdFromDataset(raw){return /^\d+$/.test(String(raw))?Number(raw):raw}
@@ -97,6 +100,7 @@ function setView(view){
 }
 function esc(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function playerLabel(g){return `${g.min}–${g.max} players`}
+function showToast(message){const t=document.getElementById('toast');if(!t)return;t.textContent=message;t.classList.add('show');clearTimeout(showToast._timer);showToast._timer=setTimeout(()=>t.classList.remove('show'),1800)}
 
 function renderNav(){
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
@@ -151,12 +155,12 @@ function filtersHTML(){return `
 function gameCard(g){
   const p=packInfo(g.pack), c=colourForPack(g.pack);
   return `<article class="game-card" style="--pack-color:linear-gradient(90deg,${c[0]},${c[1]})">
-    <div class="game-art" ${artStyle(g.pack)}><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
+    <div class="game-art" ${gameArtStyle(g)}><div class="game-art-overlay"><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?'<span class="status-badge">Upcoming</span>':''}</div></div>
     <div class="game-body">
       <div class="game-meta"><h3>${esc(g.title)}</h3><button class="fav-btn ${state.favourites.has(g.id)?'active':''}" data-fav="${g.id}" aria-label="Favourite ${esc(g.title)}">★</button></div>
       <p>${esc(g.desc)}</p>
       <div class="mini-row"><span class="mini-tag player">👥 ${playerLabel(g)}</span>${g.tags.map(t=>`<span class="mini-tag">${tagMeta[t].label}</span>`).join('')}${!g.tags.length?'<span class="mini-tag">Other interaction</span>':''}</div>
-      <div class="card-actions"><button data-detail="${g.id}">Details</button><button data-wheel-add="${g.id}" ${g.upcoming?'disabled title="Not released yet"':''}>+ Wheel</button></div>
+      <div class="card-actions"><button data-detail="${g.id}">Details</button><button class="${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}" ${g.upcoming?'disabled title="Not released yet"':''}>${state.wheel.games.has(g.id)?'✓ On Wheel':'+ Wheel'}</button></div>
     </div></article>`;
 }
 
@@ -222,10 +226,10 @@ function spinWheel(){
   requestAnimationFrame(frame);
 }
 
-function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${artStyle(g.pack)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions"><button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary" data-wheel-add="${g.id}">Add to wheel</button>`:''}</div><p class="asset-note">Unofficial fan-made companion. Pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions"><button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Unofficial fan-made companion. Official game/pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
 function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">My Jackbox collection</h2></div><button class="close-btn" data-close>×</button></div><p class="detail-desc">These choices are saved only in this browser. They can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></div>`;if(!settingsDialog.open) settingsDialog.showModal()}
 
-function resetWheel(){state.wheel={players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null};renderWheel()}
+function resetWheel(){state.wheel={players:null,tags:new Set(),packs:new Set(packs.filter(p=>p.status==='released').map(p=>p.id)),scope:'selected',games:new Set(),match:'any',angle:0,spinning:false,result:null};save();renderWheel()}
 
 // Global click handling
 document.addEventListener('click',e=>{
@@ -246,19 +250,19 @@ document.addEventListener('click',e=>{
   if(b.dataset.owned){const id=packIdFromDataset(b.dataset.owned);state.owned.has(id)?state.owned.delete(id):state.owned.add(id);save();if(settingsDialog.open)showSettings();else render();return}
   if(b.dataset.clearOwned!==undefined){state.owned.clear();save();showSettings();return}
   if(b.dataset.packOpen){state.pack=String(b.dataset.packOpen);setView('games');return}
-  if(b.dataset.wheelAdd){state.wheel.games.add(b.dataset.wheelAdd);const g=games.find(x=>x.id===b.dataset.wheelAdd);state.wheel.packs.add(g.pack);state.wheel.scope='selected';if(gameDialog.open)gameDialog.close();setView('wheel');return}
-  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=state.players;state.wheel.tags=new Set(state.tags);state.wheel.match=state.match;setView('wheel');return}
+  if(b.dataset.wheelAdd){const id=b.dataset.wheelAdd;const g=games.find(x=>x.id===id);const already=state.wheel.games.has(id);state.wheel.games.add(id);state.wheel.packs.add(g.pack);state.wheel.scope='selected';save();showToast(already?`${g.title} is already on the wheel`:`✓ ${g.title} added to wheel`);b.textContent='✓ Added';b.classList.add('added');setTimeout(()=>{if(document.body.contains(b)){b.textContent='✓ On Wheel';b.classList.add('added')}},1400);return}
+  if(b.dataset.sendWheel!==undefined){const list=filteredGames().filter(g=>!g.upcoming);state.wheel.games=new Set(list.map(g=>g.id));state.wheel.scope='selected';state.wheel.packs=new Set(list.map(g=>g.pack));state.wheel.players=state.players;state.wheel.tags=new Set(state.tags);state.wheel.match=state.match;save();setView('wheel');return}
   if(b.dataset.wheelTag){const t=b.dataset.wheelTag;state.wheel.tags.has(t)?state.wheel.tags.delete(t):state.wheel.tags.add(t);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
   if(b.dataset.wheelPack){const id=packIdFromDataset(b.dataset.wheelPack);state.wheel.packs.has(id)?state.wheel.packs.delete(id):state.wheel.packs.add(id);state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
-  if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.result=null;renderWheel();return}
+  if(b.dataset.wheelClearGames!==undefined){state.wheel.games.clear();state.wheel.result=null;save();renderWheel();return}
   if(b.dataset.wheelReset!==undefined){resetWheel();return}
   if(b.id==='spinBtn'||b.dataset.spinAgain!==undefined){spinWheel();return}
-  if(b.dataset.removeWinner){state.wheel.games.size?state.wheel.games.delete(b.dataset.removeWinner):state.wheel.games=new Set(wheelPool().filter(g=>g.id!==b.dataset.removeWinner).map(g=>g.id));state.wheel.result=null;renderWheel();setTimeout(()=>spinWheel(),100);return}
+  if(b.dataset.removeWinner){state.wheel.games.size?state.wheel.games.delete(b.dataset.removeWinner):state.wheel.games=new Set(wheelPool().filter(g=>g.id!==b.dataset.removeWinner).map(g=>g.id));state.wheel.result=null;save();renderWheel();setTimeout(()=>spinWheel(),100);return}
 });
 
 document.addEventListener('input',e=>{
   if(e.target.id==='searchInput'){state.search=e.target.value;renderGames();const n=document.getElementById('searchInput');n.focus();n.setSelectionRange(n.value.length,n.value.length)}
-  if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.result=null;drawWheel()}
+  if(e.target.matches('[data-wheel-game]')){e.target.checked?state.wheel.games.add(e.target.dataset.wheelGame):state.wheel.games.delete(e.target.dataset.wheelGame);state.wheel.result=null;save();drawWheel()}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='homePlayerSelect'){state.players=e.target.value?Number(e.target.value):null;if(state.players!==null)setView('finder')}
