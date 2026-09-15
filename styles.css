@@ -1050,3 +1050,43 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   align-content:flex-start!important;
 }
 .compact-games-grid .card-actions{margin-top:0!important}
+
+/* --- Balanced larger wheel-side character sizing --- */
+.wheel-wrap{overflow:visible!important}
+.wheel-character{
+  width:auto!important;
+  height:auto!important;
+  object-fit:contain!important;
+  object-position:bottom center!important;
+  max-width:none!important;
+  pointer-events:none!important;
+  z-index:5!important;
+}
+
+/* More symmetrical sizing, with the right character lifted and nudged toward the wheel */
+.wheel-character-1{
+  height:82%!important;
+  max-height:560px!important;
+  left:-34%!important;
+  right:auto!important;
+  bottom:-8%!important;
+}
+.wheel-character-2{
+  height:80%!important;
+  max-height:540px!important;
+  right:-2%!important;
+  left:auto!important;
+  bottom:4%!important;
+}
+
+@media(max-width:1450px){
+  .wheel-character-1{height:76%!important;left:-27%!important;bottom:-6%!important}
+  .wheel-character-2{height:74%!important;right:0%!important;bottom:6%!important}
+}
+@media(max-width:1180px){
+  .wheel-character-1{height:64%!important;left:-12%!important;bottom:-4%!important}
+  .wheel-character-2{display:none!important}
+}
+@media(max-width:900px){
+  .wheel-character{display:none!important}
+}
