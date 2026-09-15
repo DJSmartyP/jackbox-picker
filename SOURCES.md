@@ -34,3 +34,8 @@ Some games do not naturally fit any of those four interactions. The catalogue le
 ## Visual assets
 
 Everything in `/assets` was created specifically for this companion. The repository intentionally contains no official Jackbox logos, cover art, screenshots, characters or extracted game assets.
+
+
+## Artwork
+
+This build uses official pack promotional artwork from Jackbox Games product pages while keeping the companion UI, filters, wheel, and original support graphics custom to this fan-made project.

@@ -52,3 +52,8 @@ Edit `data/catalogue.js`. Each game record contains:
 
 ## Copyright / trademark note
 This is an unofficial fan companion. Jackbox and game names are used only to identify the products being catalogued. All bundled visual assets in `/assets` are original and do not reproduce official logos, screenshots, box art or characters.
+
+
+## Artwork
+
+This build uses official pack promotional artwork from Jackbox Games product pages while keeping the companion UI, filters, wheel, and original support graphics custom to this fan-made project.
