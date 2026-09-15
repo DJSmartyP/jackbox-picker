@@ -467,3 +467,32 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
   .section:last-child .filter-bar{margin:8px 0 0;gap:7px}
   .section:last-child .pack-chip{font-size:13px;padding:8px 11px}
 }
+
+
+/* --- Floating navigation while scrolling --- */
+@media (min-width:901px){
+  body{padding-top:88px}
+  .topbar{
+    position:fixed !important;
+    top:10px;
+    left:14px;
+    right:14px;
+    width:auto;
+    height:66px;
+    z-index:1000;
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:20px;
+    background:rgba(4,5,11,.86);
+    -webkit-backdrop-filter:blur(22px) saturate(145%);
+    backdrop-filter:blur(22px) saturate(145%);
+    box-shadow:0 16px 42px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.025) inset;
+    transition:background .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .topbar:hover{
+    background:rgba(4,5,11,.94);
+    border-color:rgba(255,255,255,.17);
+    box-shadow:0 18px 48px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.035) inset;
+  }
+  .topbar .brand img{max-height:46px;width:auto;max-width:230px;object-fit:contain}
+  .app-shell{padding-top:22px}
+}
