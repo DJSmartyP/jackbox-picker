@@ -910,21 +910,8 @@ body{background:radial-gradient(circle at 6% 28%,rgba(35,217,255,.16),transparen
 }
 
 
-/* --- Standardise compact game-card heights for up to two tag rows --- */
-.compact-games-grid{
-  align-items:stretch;
-}
-.compact-games-grid .game-card{
-  height:100%;
-}
-.compact-games-grid .game-body{
-  display:flex;
-  flex-direction:column;
-}
-.compact-games-grid .mini-row{
-  min-height:58px; /* reserves room for a second wrapped tag row */
-  align-content:flex-start;
-}
-.compact-games-grid .card-actions{
-  margin-top:6px !important;
-}
+/* --- Finder shortlist -> wheel controls --- */
+.finder-wheel-actions{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.finder-wheel-actions button{white-space:nowrap}
+.finder-wheel-actions button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:1100px){.finder-wheel-actions{justify-content:flex-start;width:100%;margin-top:10px}}
