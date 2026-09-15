@@ -46,6 +46,36 @@ const wheelOverlayFamilies={
     'assets/wheel-overlays/monkey-1.png',
     'assets/wheel-overlays/monkey-2.png'
   ],
+  fox:[
+    'assets/wheel-overlays/mascot-fox.png'
+  ],
+  chameleon:[
+    'assets/wheel-overlays/mascot-chameleon.png'
+  ],
+  artbot:[
+    'assets/wheel-overlays/mascot-artbot.png'
+  ],
+  bat:[
+    'assets/wheel-overlays/mascot-bat.png'
+  ],
+  raccoon:[
+    'assets/wheel-overlays/mascot-raccoon.png'
+  ],
+  parrot:[
+    'assets/wheel-overlays/mascot-parrot.png'
+  ],
+  slime:[
+    'assets/wheel-overlays/mascot-slime.png'
+  ],
+  disco:[
+    'assets/wheel-overlays/mascot-disco.png'
+  ],
+  cyclops:[
+    'assets/wheel-overlays/mascot-cyclops.png'
+  ],
+  cupidGhost:[
+    'assets/wheel-overlays/mascot-cupid-ghost.png'
+  ],
   smarty:[
     'assets/wheel-overlays/smarty-1.png',
     'assets/wheel-overlays/smarty-2.png',
