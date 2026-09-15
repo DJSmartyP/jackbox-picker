@@ -196,3 +196,25 @@ footer{color:var(--muted)}
   .winner{font-size:36px}
   .winner-art{min-height:210px}
 }
+
+
+/* Local launcher */
+.launch-btn{border:1px solid rgba(73,229,255,.28);background:rgba(73,229,255,.09);color:#bdf6ff;border-radius:14px;padding:11px 14px;font-weight:950;cursor:pointer;min-height:44px}
+.launch-btn:hover{background:rgba(73,229,255,.16);border-color:rgba(73,229,255,.46)}
+.launch-btn.ready{background:linear-gradient(135deg,#49e5ff,#7b61ff);color:#08111d;border-color:transparent}
+.pack-controls-clean{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.settings-section{padding-top:20px;margin-top:20px;border-top:1px solid var(--line)}
+.settings-section:first-of-type{padding-top:6px;margin-top:12px;border-top:0}
+.settings-section h3{margin:0 0 8px;font-size:22px}
+.settings-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.launcher-status{white-space:nowrap;padding:8px 10px;border-radius:999px;font-size:13px;font-weight:950;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.launcher-status.online{color:#b9ffb6;border-color:rgba(140,245,138,.35);background:rgba(140,245,138,.11)}
+.launcher-status.offline{color:#ffb6bd;border-color:rgba(255,109,120,.35);background:rgba(255,109,120,.10)}
+.launcher-token-row{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:8px}
+.launcher-token-input{width:100%;min-height:50px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#0e1729;color:#fff;font-size:16px}
+.launcher-note{margin-top:10px;color:var(--muted);font-size:13px}
+.launcher-note code{color:var(--cyan)}
+.launcher-configured{margin-top:10px;color:var(--muted);font-size:14px}
+.launcher-configured b{color:#fff;font-size:18px}
+.winner-actions .launch-btn{min-height:52px;padding:13px 18px;font-size:17px}
+@media(max-width:680px){.launcher-token-row{grid-template-columns:1fr}.settings-title-row{flex-direction:column}.pack-controls-clean{align-items:stretch}.pack-controls-clean .launch-btn,.pack-controls-clean .owned-toggle{flex:1}}
