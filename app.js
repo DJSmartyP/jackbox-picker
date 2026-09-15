@@ -120,9 +120,21 @@ async function refreshLauncherStatus(){
   }catch{state.launcher.online=false;state.launcher.configured=new Set()}
   return state.launcher.online;
 }
+function tidyAfterLaunch(){
+  clearTimeout(tidyAfterLaunch._timer);
+  tidyAfterLaunch._timer=setTimeout(()=>{
+    if(gameDialog.open)gameDialog.close();
+    if(settingsDialog.open)settingsDialog.close();
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+  },5000);
+}
 async function launchPack(id){
   if(!state.launcher.token){showToast('Open Settings and pair the local launcher first');return}
-  try{await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');showToast(`▶ Launching ${packBadge(packInfo(id))}`)}
+  try{
+    await launcherRequest(`/launch/${encodeURIComponent(id)}`,'POST');
+    showToast(`▶ Launching ${packBadge(packInfo(id))}`);
+    tidyAfterLaunch();
+  }
   catch(err){showToast(err.message||'Launcher unavailable')}
 }
 function launchButton(packId,label='Launch Pack'){
@@ -130,7 +142,7 @@ function launchButton(packId,label='Launch Pack'){
   return `<button class="launch-btn ${configured?'ready':''}" data-launch-pack="${packId}">▶ ${label}</button>`;
 }
 function wheelSelectionCount(){return state.wheel.games.size}
-function updateWheelNav(){const count=wheelSelectionCount();document.querySelectorAll('[data-view="wheel"]').forEach(b=>{const mobile=!!b.closest('.mobile-nav');b.innerHTML=`<img class="wheel-badge-icon" src="assets/partycipate/partycipate-mark.png" alt=""><span>${mobile?'Wheel':'Wheel'}</span><b class="nav-wheel-count ${count?'' :'empty'}">${count}</b>`})}
+function updateWheelNav(){const count=wheelSelectionCount();document.querySelectorAll('[data-view="wheel"]').forEach(b=>{const mobile=!!b.closest('.mobile-nav');b.innerHTML=`<img class="wheel-badge-icon" src="assets/ui/wheel-badge.png" alt=""><span>${mobile?'Wheel':'Wheel'}</span><b class="nav-wheel-count ${count?'' :'empty'}">${count}</b>`})}
 
 function renderNav(){
   updateWheelNav();
@@ -150,9 +162,9 @@ function renderHome(){
   app.innerHTML=`
     <section class="hero">
       <div class="hero-card"><div class="hero-copy">
-        <div class="eyebrow">PARTYCIPATE · Jackbox Companion</div>
+        <div class="eyebrow">Unofficial game-night companion</div>
         <h1>Stop scrolling.<br><span>Start playing.</span></h1>
-        <p>Pick the right game for the room, build a shortlist, or let the wheel decide. Same friends. Better chaos.</p>
+        <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
       </div></div>
       <div class="hero-side panel">
@@ -260,7 +272,7 @@ function renderWheel(){
   requestAnimationFrame(drawWheel);
 }
 function wheelBaseForChecklist(){let pool=games.filter(g=>!g.upcoming&&gameFitsPlayers(g,state.wheel.players)&&tagMatch(g,state.wheel.tags,state.wheel.match));if(state.wheel.scope==='selected')pool=pool.filter(g=>state.wheel.packs.has(g.pack));if(state.wheel.scope==='owned')pool=pool.filter(g=>state.owned.has(g.pack));if(state.wheel.scope==='favourites')pool=pool.filter(g=>state.favourites.has(g.id));return pool}
-function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-art" ${gameArtStyle(g)}><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,packInfo(g.pack).kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
+function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-art" ${gameArtStyle(g)}><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,packInfo(g.pack).kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
 function drawWheel(angle=state.wheel.angle){
   const canvas=document.getElementById('wheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),pool=wheelPool(),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=H*.46;ctx.clearRect(0,0,W,H);
   if(!pool.length){ctx.fillStyle='#1c2741';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeb8d0';ctx.font='700 34px system-ui';ctx.textAlign='center';ctx.fillText('No games match',cx,cy);return}
@@ -275,11 +287,11 @@ function spinWheel(){
   requestAnimationFrame(frame);
 }
 
-function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">PARTYCIPATE companion interface. Jackbox game and pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
-function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">PARTYCIPATE settings</h2></div><button class="close-btn" data-close>×</button></div>
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Unofficial fan-made companion. Official game/pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">Party Picker settings</h2></div><button class="close-btn" data-close>×</button></div>
   <section class="settings-section"><h3>My Jackbox collection</h3><p class="detail-desc">These choices stay in this browser and can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></section>
-  <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then PARTYCIPATE can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
-    <label class="title" for="launcherToken">Pairing token</label><div class="launcher-token-row"><input id="launcherToken" class="launcher-token-input" value="${esc(state.launcher.token)}" placeholder="Paste token from the launcher helper"><button class="primary" data-save-launcher>Save & test</button></div>
+  <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then Party Picker can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
+    <label class="title" for="launcherToken">Pairing token</label><div class="launcher-token-row"><input id="launcherToken" class="launcher-token-input" value="${esc(state.launcher.token)}" placeholder="Paste token from Party Picker Launcher"><button class="primary" data-save-launcher>Save & test</button></div>
     <div class="launcher-note">Helper address: <code>${state.launcher.base}</code>. Keep the helper running while you play.</div>
     ${state.launcher.online&&state.launcher.token?`<div class="launcher-configured"><b>${state.launcher.configured.size}</b> shortcut${state.launcher.configured.size===1?'':'s'} configured</div>`:''}
   </section></div>`;if(!settingsDialog.open)settingsDialog.showModal();refreshLauncherStatus().then(()=>{if(settingsDialog.open){const badge=settingsDialog.querySelector('.launcher-status');if(badge){badge.className=`launcher-status ${state.launcher.online?'online':'offline'}`;badge.textContent=state.launcher.online?'● Helper online':'● Helper offline'}}})}
