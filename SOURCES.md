@@ -1,6 +1,6 @@
 # Data sources and editorial policy
 
-Checked: 15 September 2026.
+Checked: 5 November 2026.
 
 ## Primary sources
 
@@ -18,7 +18,12 @@ Checked: 15 September 2026.
 - Jackbox Games — **The Jackbox Party Pack 12**  
   https://www.jackboxgames.com/games/packs/the-jackbox-party-pack-12
   
-  Used for the five announced Pack 12 games and their published player counts. Pack 12 is marked Upcoming because it had not released at the time of this data check.
+  Used for the five Pack 12 games and their published player counts. Jackbox Games confirmed the pack's release on 15 October 2026: https://www.jackboxgames.com/blog/the-jackbox-party-pack-12-is-available-now-on-major-platforms. Game-specific Audience and Extended Timers remain unverified.
+
+- Jackbox Games — **Trivia Murder Party 3**  
+  https://www.jackboxgames.com/games/trivia-murder-party-3
+
+  Used for its standalone Early Access status, 2026 release year, 1–8 player range, and audience capacity. Extended Timers remain unverified.
 
 - Jackbox Games — numbered Party Pack product/game pages  
   https://www.jackboxgames.com/games/packs/the-jackbox-party-pack-1  
