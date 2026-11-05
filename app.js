@@ -21,7 +21,8 @@ const packArtwork = {
   9:'https://cms-assets.jackboxgames.com/pp9_splash_wide_1ebc38bb64.png?format=auto&width=1000',
   10:'https://cms-assets.jackboxgames.com/pack_10_wide_splash_c2d86713ae.jpg?format=auto&width=1000',
   11:'https://cms-assets.jackboxgames.com/pp11_splash_wide_e46c09f390.png?format=auto&width=1000',
-  12:'https://cms-assets.jackboxgames.com/PP_12_wishlist_cdd8904c43.png?format=auto&width=1000',
+  12:'https://cms-assets.jackboxgames.com/PP_12_Spotlight_Thumbnail_928x540_5cbdeb979a.png?format=auto&width=1000',
+  'trivia-murder-party-3':'https://cms-assets.jackboxgames.com/TMP_3_EA_logo_960x540_20ca256c8d.png?format=auto&width=1000',
   'survey-scramble':'assets/hero-pattern.png'
 };
 function packArtUrl(id){return packArtwork[id] || 'assets/hero-pattern.png'}
@@ -117,10 +118,10 @@ function save(){
 }
 function packInfo(id){return packs.find(p=>String(p.id)===String(id))}
 function packIdFromDataset(raw){return /^\d+$/.test(String(raw))?Number(raw):raw}
-function colourForPack(id){if(String(id)==='survey-scramble')return ['#ff4f8b','#ff9f43'];const n=Number(id);return packColours[(n-1)%packColours.length]}
+function colourForPack(id){if(String(id)==='survey-scramble')return ['#ff4f8b','#ff9f43'];if(String(id)==='trivia-murder-party-3')return ['#9d233e','#f4a746'];const n=Number(id);return packColours[(n-1)%packColours.length]}
 function packBadge(pack){return pack.kind==='standalone'?(pack.shortName||pack.name):`Pack ${pack.id}`}
-function packChipLabel(pack){return pack.kind==='standalone'?'Survey':String(pack.id)}
-function ownedSort(a,b){const pa=packInfo(a),pb=packInfo(b);if(pa?.kind==='standalone'&&pb?.kind!=='standalone')return 1;if(pb?.kind==='standalone'&&pa?.kind!=='standalone')return -1;return Number(a)-Number(b)}
+function packChipLabel(pack){return pack.kind==='standalone'?(pack.shortName||pack.name):String(pack.id)}
+function ownedSort(a,b){const pa=packInfo(a),pb=packInfo(b);if(pa?.kind==='standalone'&&pb?.kind!=='standalone')return 1;if(pb?.kind==='standalone'&&pa?.kind!=='standalone')return -1;return pa?.kind==='standalone'?(pa.name||'').localeCompare(pb.name||''):Number(a)-Number(b)}
 function gameFitsPlayers(g,n){return !n || (g.min<=n && g.max>=n)}
 function tagMatch(g,tags,mode='any'){
   if(!tags.size) return true;
@@ -243,7 +244,7 @@ function renderHome(){
     <section class="hero">
       <div class="hero-card"><div class="hero-copy">
         <h1>Stop scrolling.<br><span>Start playing.</span></h1>
-        <p>Browse the numbered Party Packs plus Survey Scramble, filter by group size and how you want to play, or let the wheel decide.</p>
+        <p>Browse the numbered Party Packs and standalone games, filter by group size and how you want to play, or let the wheel decide.</p>
         <div class="hero-actions"><button class="primary" data-go="finder">Find a Game</button><button class="ghost" data-go="wheel">Spin the Wheel</button></div>
       </div></div>
       <div class="hero-side panel">
@@ -265,7 +266,7 @@ function groupedGameSections(list){
     const items=list.filter(g=>String(g.pack)===String(p.id));
     if(!items.length) return '';
     const c=colourForPack(p.id);
-    const unit=p.kind==='standalone'?'modes':'games';
+    const unit=p.id==='survey-scramble'?'modes':'games';
     return `<section class="game-pack-group">
       <div class="game-pack-heading" style="--pc1:${c[0]};--pc2:${c[1]};--pack-art:url('${packArtUrl(p.id)}')">
         <div class="game-pack-heading__backplate"></div>
@@ -307,7 +308,7 @@ function gameCard(g){
 function renderPacks(){
   app.innerHTML=`<section><div class="section-head"><div><h2>Packs & standalone titles</h2><p>Official pack artwork with a cleaner stream-first box selection layout.</p></div></div><div class="packs-grid">${packs.map(packCard).join('')}</div></section>`;
 }
-function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.kind==='standalone'?'modes':'games', art=p.kind==='standalone'?'SS':p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><div class="pack-card-topline">${p.year} · ${count} ${unit}${p.status==='upcoming'?' · Upcoming':''}</div><h3>${p.name}</h3><div class="pack-controls pack-controls-clean">${p.status==='released'?launchButton(p.id,p.kind==='standalone'?'Launch Survey Scramble':`Launch Pack ${p.id}`):''}<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
+function packCard(p){const c=colourForPack(p.id), items=games.filter(g=>String(g.pack)===String(p.id)), count=items.length, unit=p.id==='survey-scramble'?'modes':'games', art=p.kind==='standalone'?(p.shortName||p.name):p.id;return `<article class="pack-card" data-pack-open="${p.id}" style="--pc1:${c[0]};--pc2:${c[1]}"><div class="pack-art" ${artStyle(p.id)}><div class="pack-art-fade"></div><div class="pack-num">${art}</div></div><div class="pack-card-body"><div class="pack-card-topline">${p.year} · ${count} ${unit}${p.status==='upcoming'?' · Upcoming':''}</div><h3>${p.name}</h3><div class="pack-controls pack-controls-clean">${p.status==='released'?launchButton(p.id,p.kind==='standalone'?`Launch ${packBadge(p)}`:`Launch Pack ${p.id}`):''}<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}" ${p.status==='upcoming'?'disabled':''}>${state.owned.has(p.id)?'✓ Owned':'Mark owned'}</button></div></div></article>`}
 
 function renderFinder(){
   const list=filteredGames();
@@ -354,7 +355,7 @@ function renderWheel(){
   requestAnimationFrame(drawWheel);
 }
 function wheelBaseForChecklist(){let pool=games.filter(g=>!g.upcoming&&gameFitsPlayers(g,state.wheel.players)&&tagMatch(g,state.wheel.tags,state.wheel.match));if(state.wheel.scope==='selected')pool=pool.filter(g=>state.wheel.packs.has(g.pack));if(state.wheel.scope==='owned')pool=pool.filter(g=>state.owned.has(g.pack));if(state.wheel.scope==='favourites')pool=pool.filter(g=>state.favourites.has(g.id));return pool}
-function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-card"><div class="winner-art-frame"><img class="winner-art-rotated-img" src="${esc(gameArtUrl(g))}" alt="" loading="lazy"><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""></div><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,packInfo(g.pack).kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
+function winnerHTML(g){const p=packInfo(g.pack);return `<div class="winner-showcase"><div class="winner-card"><div class="winner-art-frame"><img class="winner-art-rotated-img" src="${esc(gameArtUrl(g))}" alt="" loading="lazy"><img class="winner-burst" src="assets/ui/winner-burst.png" alt=""></div><div class="winner-copy"><span class="pack-badge">${packBadge(p)}</span><div class="winner">${esc(g.title)}</div><div class="winner-sub">${playerLabel(g)} · ${g.tags.length?g.tags.map(t=>tagMeta[t].label).join(' · '):'Other interaction'}</div></div></div><div class="winner-actions">${launchButton(g.pack,`Launch ${packBadge(packInfo(g.pack))}`)}<button class="ghost" data-spin-again>Spin again</button><button class="danger" data-remove-winner="${g.id}">Remove & spin again</button></div></div>`}
 function drawWheel(angle=state.wheel.angle){
   const canvas=document.getElementById('wheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),pool=wheelPool(),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=H*.46;ctx.clearRect(0,0,W,H);
   if(!pool.length){ctx.fillStyle='#1c2741';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#aeb8d0';ctx.font='700 34px system-ui';ctx.textAlign='center';ctx.fillText('No games match',cx,cy);return}
@@ -369,7 +370,7 @@ function spinWheel(){
   requestAnimationFrame(frame);
 }
 
-function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,p.kind==='standalone'?'Launch Survey Scramble':`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Jackbox Games Picker is an unofficial fan-made tool by Partycipate. Official Jackbox game and pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
+function showGame(id){const g=games.find(x=>x.id===id),p=packInfo(g.pack);gameDialog.innerHTML=`<div class="dialog-inner"><div class="detail-art" ${gameArtStyle(g)}><div class="dialog-head"><div><span class="pack-badge">${packBadge(p)}</span>${g.upcoming?' <span class="status-badge">Upcoming</span>':''}<h2 class="detail-title">${esc(g.title)}</h2></div><button class="close-btn" data-close>×</button></div></div><p class="detail-desc">${esc(g.desc)}</p><div class="detail-grid"><div class="detail-cell"><span>Players</span><b>${playerLabel(g)}</b></div><div class="detail-cell"><span>Release</span><b>${p.year}${g.upcoming?' · Upcoming':''}</b></div><div class="detail-cell"><span>Audience</span><b>${g.audience===null?'TBC':g.audience?'Supported':'Not supported'}</b></div><div class="detail-cell"><span>Extended timers</span><b>${g.extended===null?'TBC':g.extended?'Available':'Not listed'}</b></div></div><div class="field"><label class="title">Interaction</label><div class="range-row">${g.tags.length?g.tags.map(t=>`<span class="tag-chip active">${tagMeta[t].label}</span>`).join(''):'<span class="tag-chip">Other</span>'}</div></div><div class="field"><label class="title">Game style</label><div class="range-row">${g.style.map(s=>`<span class="mini-tag">${esc(s)}</span>`).join('')}</div></div><div class="hero-actions">${!g.upcoming?launchButton(g.pack,`Launch ${packBadge(p)}`):''}<button class="ghost" data-fav="${g.id}">${state.favourites.has(g.id)?'★ Favourited':'☆ Add favourite'}</button>${!g.upcoming?`<button class="primary ${state.wheel.games.has(g.id)?'added':''}" data-wheel-add="${g.id}">${state.wheel.games.has(g.id)?'✓ On Wheel':'Add to wheel'}</button>`:''}</div><p class="asset-note">Jackbox Games Picker is an unofficial fan-made tool by Partycipate. Official Jackbox game and pack artwork belongs to Jackbox Games.</p></div>`;if(!gameDialog.open) gameDialog.showModal()}
 function showSettings(){settingsDialog.innerHTML=`<div class="dialog-inner"><div class="dialog-head"><div><div class="eyebrow">Preferences</div><h2 style="margin:0">Jackbox Games Picker settings</h2></div><button class="close-btn" data-close>×</button></div>
   <section class="settings-section"><h3>My Jackbox collection</h3><p class="detail-desc">These choices stay in this browser and can be used by Find a Game and the wheel.</p><div class="settings-packs">${packs.filter(p=>p.status==='released').map(p=>`<button class="owned-toggle ${state.owned.has(p.id)?'active':''}" data-owned="${p.id}">${state.owned.has(p.id)?'✓ ':''}${packBadge(p)}</button>`).join('')}</div><button class="ghost" data-clear-owned>Clear owned packs</button></section>
   <section class="settings-section launcher-settings"><div class="settings-title-row"><div><h3>Local launcher</h3><p class="detail-desc">Pair the Windows helper once, then Jackbox Games Picker can open your local Jackbox shortcuts.</p></div><span class="launcher-status ${state.launcher.online?'online':'offline'}">${state.launcher.online?'● Helper online':'● Helper offline'}</span></div>
