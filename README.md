@@ -3,8 +3,9 @@
 A GitHub Pages-ready, unofficial companion for browsing Jackbox Party Pack games and randomly choosing what to play.
 
 ## Included
-- Party Packs 1–11, plus Pack 12 marked **Upcoming**
+- Party Packs 1–12, including all five released Pack 12 games
 - **The Jackbox Survey Scramble** with all six current modes: Hilo, Bounce, Squares, Speed, Dares and Dash
+- **Trivia Murder Party 3** as a standalone Early Access game
 - Search by game or pack
 - Exact player-count compatibility filtering
 - Interaction filters: Drawing, Quiz, Speaking, Typing
@@ -28,7 +29,7 @@ A GitHub Pages-ready, unofficial companion for browsing Jackbox Party Pack games
 No npm install, build process, database or API key is required.
 
 ## Data notes
-Player counts and audience/extended-timer flags for Packs 1–11 and The Jackbox Survey Scramble are based on Jackbox Games' official support catalogue, checked September 2026. Survey Scramble is represented as six individually selectable modes so the random wheel can choose a mode directly. Pack 12 is announced but unreleased in this build, so its audience/timer fields are left unknown and the pack is visibly marked Upcoming.
+Player counts and audience/extended-timer flags for Packs 1–11 and The Jackbox Survey Scramble are based on Jackbox Games' official support catalogue, checked September 2026. Survey Scramble is represented as six individually selectable modes so the random wheel can choose a mode directly. Pack 12 was released on 15 October 2026; its five games are selectable, while game-specific audience and extended-timer flags remain unverified. Trivia Murder Party 3 is a standalone Early Access release with 1–8 players and audience play-along; its extended-timer support remains unverified.
 
 The four interaction categories are editorial classifications for this companion and are intentionally multi-select. Some games (for example music/action titles) do not force-fit into Drawing, Quiz, Speaking or Typing.
 
