@@ -10,11 +10,11 @@ A GitHub Pages-ready, unofficial companion for browsing Jackbox Party Pack games
 - Exact player-count compatibility filtering
 - Interaction filters: Drawing, Quiz, Speaking, Typing
 - Pack and standalone-title browser
-- Local **Owned collection** and **Favourites** using `localStorage`
+- Local **Owned collection** for whole packs and individual games, plus **Favourites**, using `localStorage`
 - "Find a Game" guided filter
 - Configurable animated random wheel
 - Add/remove individual games from the wheel
-- Spin from selected packs, selected categories, player count, owned packs or favourites
+- Spin from selected packs, selected categories, player count, owned games or favourites
 - Mobile-first responsive layout
 - Installable PWA manifest
 - Original PNG interface assets; no Jackbox logos, screenshots or character art are bundled
@@ -27,6 +27,8 @@ A GitHub Pages-ready, unofficial companion for browsing Jackbox Party Pack games
 5. Save. GitHub will publish the site.
 
 No npm install, build process, database or API key is required.
+
+Ownership changes save automatically in the current browser. Mark a whole pack in **Packs** or **Settings**, or mark individual games from their cards. The collection does not sync between browsers or devices.
 
 ## Data notes
 Player counts and audience/extended-timer flags for Packs 1–11 and The Jackbox Survey Scramble are based on Jackbox Games' official support catalogue, checked September 2026. Survey Scramble is represented as six individually selectable modes so the random wheel can choose a mode directly. Pack 12 was released on 15 October 2026; its five games are selectable, while game-specific audience and extended-timer flags remain unverified. Trivia Murder Party 3 is a standalone Early Access release with 1–8 players and audience play-along; its extended-timer support remains unverified.
